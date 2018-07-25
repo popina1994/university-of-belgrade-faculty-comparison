@@ -4,12 +4,14 @@ from crawler.crawler_faculty import CrawlerFaculty
 from language.language_converter import CyrillicLatin
 
 ETF_PERSONNEL_URL = "https://www.etf.bg.ac.rs/sr/katedre/katedra-za-racunarsku-tehniku-i-informatiku"
+ETF_DEPARTMENT = "katedra za racunarsku tehniku i informatiku"
+ETF_FACULTY_NAME = "elektrotehnicki fakultet"
 REGEX_NAME = re.compile("(?<=>)(?:\s*)([\w .]+)(?:\s*)")
 
 
 class CrawlerEtf(CrawlerFaculty):
     def __init__(self):
-        super().__init__(ETF_PERSONNEL_URL)
+        super().__init__(ETF_FACULTY_NAME, ETF_PERSONNEL_URL)
 
     def parse_specific(self, soup: BeautifulSoup):
         personnel_names = []
@@ -21,12 +23,15 @@ class CrawlerEtf(CrawlerFaculty):
                     if personnel_name != '':
                         personnel_names.append(personnel_name)
 
-        return list(map(CyrillicLatin.convert_serb_latin_to_latin,
-                    map(CyrillicLatin.convert_serbian_cyrillic_to_serbian_latin, personnel_names)))
+        personnel_names = list(map(CyrillicLatin.convert_serb_latin_to_latin,
+                               map(CyrillicLatin.convert_serbian_cyrillic_to_serbian_latin,
+                                   personnel_names)))
+        departments = [ETF_DEPARTMENT] * len(personnel_names)
+        return departments, personnel_names
 
 
 if __name__ == "__main__":
-    professors = CrawlerEtf().parse()
-    for professor in professors:
-        print(professor)
-    print(professors.__len__())
+    authors = CrawlerEtf().parse()
+    for author in authors:
+        print(author)
+    print(authors.__len__())

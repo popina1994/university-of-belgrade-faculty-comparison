@@ -4,12 +4,14 @@ import re
 from crawler.crawler_faculty import CrawlerFaculty
 
 MATF_PERSONNEL_URL = "http://www.racunarstvo.matf.bg.ac.rs/?content=zaposleni"
+MATF_DEPARTMENT = "katedra za racunarstvo i informatiku"
+MATF_FACULTY_NAME = "matematicki fakultet"
 REGEX_NAME = re.compile("(?<=<br/>)(?:\s*)([\w ]+)(?:\s*)")
 
 
 class CrawlerMatf(CrawlerFaculty):
     def __init__(self):
-        super().__init__(MATF_PERSONNEL_URL)
+        super().__init__(MATF_FACULTY_NAME, MATF_PERSONNEL_URL)
 
     def parse_specific(self, soup: BeautifulSoup):
         personnel_names = []
@@ -23,11 +25,13 @@ class CrawlerMatf(CrawlerFaculty):
             count_types += 1
             if count_types == 5:
                 break
-        return list(map(CyrillicLatin.convert_serb_latin_to_latin, personnel_names))
+        personnel_names = list(map(CyrillicLatin.convert_serb_latin_to_latin, personnel_names))
+        departments = [MATF_DEPARTMENT] * len(personnel_names)
+        return departments, personnel_names
 
 
 if __name__ == "__main__":
-    professors = CrawlerMatf().parse()
-    for professor in professors:
-        print(professor)
-    print(professors.__len__())
+    authors = CrawlerMatf().parse()
+    for author in authors:
+        print(author)
+    print(authors.__len__())
