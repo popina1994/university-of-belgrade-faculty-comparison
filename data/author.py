@@ -4,6 +4,7 @@ class Author:
         self._last_name = last_name
         self._department = department
         self._faculty = faculty
+        self._middle_name = ""
         self._work_num = 0
         self._conf_num = 0
 
@@ -11,6 +12,14 @@ class Author:
     COLUMN_LAST_NAME = "Prezime"
     COLUMN_DEPARTMENT_NAME = "Odsek"
     COLUMN_FACULTY_NAME = "Fakultet"
+    COLUMN_MIDDLE_NAME = "Srednje ime"
+
+    COLUMN_IDX_FIRST_NAME = 1
+    COLUMN_IDX_LAST_NAME = 2
+    COLUMN_IDX_MIDDLE_NAME = 3
+    COLUMN_IDX_DEPARTMENT_NAME = 4
+    COLUMN_IDX_FACULTY_NAME = 5
+
 
     @property
     def first_name(self):
@@ -19,6 +28,14 @@ class Author:
     @first_name.setter
     def first_name(self, value):
         self._first_name = value
+
+    @property
+    def middle_name(self):
+        return self._middle_name
+
+    @middle_name.setter
+    def middle_name(self, value):
+        self._middle_name = value
 
     @property
     def last_name(self):
