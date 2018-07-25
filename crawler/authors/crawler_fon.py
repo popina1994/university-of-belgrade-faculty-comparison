@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 import re
-from crawler.crawler_faculty import CrawlerFaculty
+from crawler.authors.crawler_faculty import CrawlerFaculty
 from language.language_converter import CyrillicLatin
 
 FON_PERSONNEL_URL = "http://www.fon.bg.ac.rs/o-fakultetu/organizacija/nastavnici/"

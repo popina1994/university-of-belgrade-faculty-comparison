@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from language.language_converter import CyrillicLatin
 import re
-from crawler.crawler_faculty import CrawlerFaculty
+from crawler.authors.crawler_faculty import CrawlerFaculty
 
 MATF_PERSONNEL_URL = "http://www.racunarstvo.matf.bg.ac.rs/?content=zaposleni"
 MATF_DEPARTMENT = "katedra za racunarstvo i informatiku"

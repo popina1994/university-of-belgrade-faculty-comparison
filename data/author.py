@@ -7,6 +7,11 @@ class Author:
         self._work_num = 0
         self._conf_num = 0
 
+    COLUMN_FIRST_NAME = "Ime"
+    COLUMN_LAST_NAME = "Prezime"
+    COLUMN_DEPARTMENT_NAME = "Odsek"
+    COLUMN_FACULTY_NAME = "Fakultet"
+
     @property
     def first_name(self):
         return self._first_name

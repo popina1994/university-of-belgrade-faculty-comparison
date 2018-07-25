@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import re
-from crawler.crawler_faculty import CrawlerFaculty
+from crawler.authors.crawler_faculty import CrawlerFaculty
 from language.language_converter import CyrillicLatin
 
 ETF_PERSONNEL_URL = "https://www.etf.bg.ac.rs/sr/katedre/katedra-za-racunarsku-tehniku-i-informatiku"

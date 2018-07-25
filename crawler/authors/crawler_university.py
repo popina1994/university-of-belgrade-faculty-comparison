@@ -1,6 +1,6 @@
-from crawler.crawler_etf import CrawlerEtf
-from crawler.crawler_matf import CrawlerMatf
-from crawler.crawler_fon import CrawlerFon
+from crawler.authors.crawler_etf import CrawlerEtf
+from crawler.authors.crawler_matf import CrawlerMatf
+from crawler.authors.crawler_fon import CrawlerFon
 from data.workbooks.authors_workbook import AuthorsWorkbook
 
 if __name__ == "__main__":
