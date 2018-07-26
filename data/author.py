@@ -5,6 +5,7 @@ class Author:
         self._department = department
         self._faculty = faculty
         self._middle_name = ""
+        self._link = ""
         self._work_num = 0
         self._conf_num = 0
 
@@ -13,12 +14,14 @@ class Author:
     COLUMN_DEPARTMENT_NAME = "Odsek"
     COLUMN_FACULTY_NAME = "Fakultet"
     COLUMN_MIDDLE_NAME = "Srednje ime"
+    COLUMN_LINK_NAME = "Link"
 
     COLUMN_IDX_FIRST_NAME = 1
     COLUMN_IDX_LAST_NAME = 2
     COLUMN_IDX_MIDDLE_NAME = 3
     COLUMN_IDX_DEPARTMENT_NAME = 4
     COLUMN_IDX_FACULTY_NAME = 5
+    COLUMN_IDX_LINK = 6
 
 
     @property
@@ -60,6 +63,14 @@ class Author:
     @faculty.setter
     def faculty(self, value):
         self._faculty = value
+
+    @property
+    def link(self):
+        return self._link
+
+    @link.setter
+    def link(self, value):
+        self._link = value
 
     @property
     def work_num(self):

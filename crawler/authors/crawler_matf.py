@@ -6,7 +6,7 @@ from crawler.authors.crawler_faculty import CrawlerFaculty
 MATF_PERSONNEL_URL = "http://www.racunarstvo.matf.bg.ac.rs/?content=zaposleni"
 MATF_DEPARTMENT = "katedra za racunarstvo i informatiku"
 MATF_FACULTY_NAME = "matematicki fakultet"
-REGEX_NAME = re.compile("(?<=<br/>)(?:\s*)([\w ]+)(?:\s*)")
+REGEX_NAME = re.compile("(?<=<br/>)(?:\s*)([\w -]+)(?:\s*)")
 
 
 class CrawlerMatf(CrawlerFaculty):
@@ -20,6 +20,7 @@ class CrawlerMatf(CrawlerFaculty):
             for list_item in list_personnel.find_all('a', href=True):
                 personnel_name = REGEX_NAME.search(str(list_item)).group(1)
                 personnel_name = "" if personnel_name is None else personnel_name.strip()
+                personnel_name = personnel_name.replace("-", " ")
                 if personnel_name != '':
                     personnel_names.append(personnel_name)
             count_types += 1

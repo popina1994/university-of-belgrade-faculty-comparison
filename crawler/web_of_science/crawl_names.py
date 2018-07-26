@@ -7,6 +7,7 @@ from data.author import Author
 KOBSON_PATH = "http://kobson.nb.rs/nauka_u_srbiji.133.html?prezime={}+{}%25"
 AUTHORS_WOS_FILE_NAME = r"C:\Users\popina\Dropbox\Fakultet\Master Thesis\Data\People\authors_wos.xlsx"
 
+
 def crawl_middle_name(first_name: str, last_name: str):
     path = KOBSON_PATH.format(last_name, first_name)
     r = requests.get(path)
