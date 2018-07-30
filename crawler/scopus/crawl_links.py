@@ -7,7 +7,7 @@ from language.language_converter import CyrillicLatin
 
 SCOPUS_PATH = "https://www.scopus.com/results/authorNamesList.uri?sort=count-f&src=al&affilName=University+of+Belgrade&sid=8a5f928c9f2a3530c144238b9d2f5e02&sot=al&sdt=al&sl=74&s=AUTHLASTNAME%28{}%29+AND+AUTHFIRST%28{}%29+AND+AFFIL%28University+of+Belgrade%29&st1={}&st2={}&orcidId=&selectionPageSearch=anl&reselectAuthor=false&activeFlag=true&showDocument=false&resultsPerPage=20&offset=1&jtp=false&currentPage=1&previousSelectionCount=0&tooManySelections=false&previousResultCount=0&authSubject=LFSC&authSubject=HLSC&authSubject=PHSC&authSubject=SOSC&exactAuthorSearch=false&showFullList=false&authorPreferredName=&origin=searchauthorfreelookup&affiliationId=&txGid=855cc953ff2e66c64f5d95ddb748ce36"
 AUTHORS_SCOPUS_FILE_NAME = r"C:\Users\popina\Dropbox\Fakultet\Master Thesis\Data\People\authors_scopus.xlsx"
-MIDDLE_NAME_NOT_FOUND = "N/A"
+
 
 def crawl_links(first_name: str, last_name: str, middle_name: str):
     path = SCOPUS_PATH.format(last_name, first_name, last_name, first_name)
@@ -26,7 +26,7 @@ def crawl_links(first_name: str, last_name: str, middle_name: str):
             print("middle_name" + middle_name)
             if (sub_names[0].lower() != last_name.lower()) or\
                (sub_names[1].lower() != first_name.lower()) or\
-               ((middle_name != MIDDLE_NAME_NOT_FOUND) and (middle_name_crawl != middle_name)):
+               ((middle_name != Author.MIDDLE_NAME_NOT_FOUND) and (middle_name_crawl != middle_name)):
                 continue
             link = full_name_a['href']
             print(first_name + " " + last_name + " " + link)

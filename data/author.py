@@ -23,6 +23,8 @@ class Author:
     COLUMN_IDX_FACULTY_NAME = 5
     COLUMN_IDX_LINK = 6
 
+    MIDDLE_NAME_NOT_FOUND = "N/A"
+
 
     @property
     def first_name(self):
