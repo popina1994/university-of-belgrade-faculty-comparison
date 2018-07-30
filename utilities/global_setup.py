@@ -4,3 +4,5 @@ PROXY ={
     'https': 'http://proxy.rcub.bg.ac.rs:8080'
 
 }
+
+DATA_PATH = r"C:\Users\popina\Dropbox\Fakultet\Master Thesis\Data"

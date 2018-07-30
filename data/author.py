@@ -6,8 +6,6 @@ class Author:
         self._faculty = faculty
         self._middle_name = ""
         self._link = ""
-        self._work_num = 0
-        self._conf_num = 0
 
     COLUMN_FIRST_NAME = "Ime"
     COLUMN_LAST_NAME = "Prezime"
@@ -74,33 +72,8 @@ class Author:
     def link(self, value):
         self._link = value
 
-    @property
-    def work_num(self):
-        return self._work_num
-
-    @work_num.setter
-    def work_num(self, value):
-        self._work_num = value
-
-    @property
-    def conf_num(self):
-        return self._conf_num
-
-    @conf_num.setter
-    def conf_num(self, value):
-        self._conf_num = value
-
-    def __lt__(self, other):
-        return self._work_num < other._work_num
-
-    def __eq__(self, other):
-        return self._work_num == other._work_num
-
     def __str__(self):
         return (self.first_name + ", " +
                 self.last_name + ", " +
                 self.department + ", " +
-                self.faculty + ", " +
-                str(self._work_num) + "," +
-                str(self._conf_num) + "," +
-                str(self._work_num - self._conf_num))
+                self.faculty + ", ")

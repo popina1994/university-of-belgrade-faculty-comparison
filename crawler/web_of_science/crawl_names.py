@@ -3,9 +3,10 @@ from bs4 import BeautifulSoup
 import openpyxl
 from data.workbooks.authors_workbook import AUTHORS_FILE_NAME
 from data.author import Author
+from utilities.global_setup import DATA_PATH
 
 KOBSON_PATH = "http://kobson.nb.rs/nauka_u_srbiji.133.html?prezime={}+{}%25"
-AUTHORS_WOS_FILE_NAME = r"C:\Users\popina\Dropbox\Fakultet\Master Thesis\Data\People\authors_wos.xlsx"
+AUTHORS_WOS_FILE_NAME = DATA_PATH + r"\People\authors_wos.xlsx"
 
 
 def crawl_middle_name(first_name: str, last_name: str):

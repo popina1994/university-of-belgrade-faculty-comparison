@@ -42,7 +42,7 @@ class CrawlerFaculty(ABC):
 
         authors = []
         for idx, personnel_name in enumerate(personnel_names_without_title):
-            first_name, last_name = CrawlerFaculty.extract_first_last_name(personnel_name)
+            first_name, last_name = CrawlerFaculty.extra_first_last_name(personnel_name)
             author = Author(first_name, last_name, departments[idx], self.faculty_name)
             authors.append(author)
         return authors
