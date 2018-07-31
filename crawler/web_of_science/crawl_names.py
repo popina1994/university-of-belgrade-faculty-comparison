@@ -1,12 +1,16 @@
 import requests
 from bs4 import BeautifulSoup
 import openpyxl
+from openpyxl import Workbook
+
 from data.workbooks.authors_workbook import AUTHORS_FILE_NAME
 from data.author import Author
 from utilities.global_setup import DATA_PATH
 
 KOBSON_PATH = "http://kobson.nb.rs/nauka_u_srbiji.133.html?prezime={}+{}%25"
 AUTHORS_WOS_FILE_NAME = DATA_PATH + r"\People\authors_wos.xlsx"
+AUTHORS_ALL_WOS_FILE_NAME = DATA_PATH + r"\People\authors_all_wos.xlsx"
+ALL_AUTHORS_WOS_SHEET_NAME = "Svi"
 
 
 def crawl_middle_name(first_name: str, last_name: str):
@@ -39,7 +43,7 @@ def crawl_middle_name(first_name: str, last_name: str):
 def update_middle_names():
     work_book = openpyxl.load_workbook(filename=AUTHORS_FILE_NAME)
     for sheet in work_book.worksheets:
-        for row in range(2, sheet.max_row):
+        for row in range(2, sheet.max_row + 1):
             first_name = sheet.cell(row, Author.COLUMN_IDX_FIRST_NAME).value
             last_name = sheet.cell(row, Author.COLUMN_IDX_LAST_NAME).value
             middle_name = crawl_middle_name(first_name, last_name.replace(" ", "-"))
@@ -51,7 +55,7 @@ def get_list_authors():
     work_book_author = openpyxl.load_workbook(filename=AUTHORS_WOS_FILE_NAME)
     list_authors = []
     for sheet in work_book_author.worksheets:
-        for row in range(2, sheet.max_row):
+        for row in range(2, sheet.max_row + 1):
             first_name = sheet.cell(row, Author.COLUMN_IDX_FIRST_NAME).value
             last_name = sheet.cell(row, Author.COLUMN_IDX_LAST_NAME).value
             middle_names = sheet.cell(row, Author.COLUMN_IDX_MIDDLE_NAME).value
@@ -64,5 +68,20 @@ def get_list_authors():
                 list_authors.append(author)
     return list_authors
 
+
+def write_all_authors():
+    list_authors = get_list_authors()
+    work_book = Workbook()
+    work_book.remove(work_book.active)
+    all_authors_sheet = work_book.create_sheet(ALL_AUTHORS_WOS_SHEET_NAME)
+
+    Author.write_header_to_sheet(all_authors_sheet)
+    row = 2
+    for author in list_authors:
+        author.write_to_sheet(all_authors_sheet, row)
+        row += 1
+    work_book.save(AUTHORS_ALL_WOS_FILE_NAME)
+
+
 if __name__ == "__main__":
-    update_middle_names()
+    write_all_authors()

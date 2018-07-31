@@ -1,11 +1,12 @@
+from  openpyxl.worksheet import worksheet
 class Author:
-    def __init__(self, first_name: str, last_name: str, department: str, faculty: str, middle_name=""):
+    def __init__(self, first_name: str, last_name: str, department: str, faculty: str, middle_name="", link=""):
         self._first_name = first_name
         self._last_name = last_name
         self._department = department
         self._faculty = faculty
         self._middle_name = middle_name
-        self._link = ""
+        self._link = link
 
     COLUMN_FIRST_NAME = "Ime"
     COLUMN_LAST_NAME = "Prezime"
@@ -85,6 +86,23 @@ class Author:
 
     def __hash__(self):
         return hash((self.first_name, self.last_name, self.middle_name))
+
+    @staticmethod
+    def write_header_to_sheet(sheet: worksheet):
+        sheet.cell(1, Author.COLUMN_IDX_FIRST_NAME).value = Author.COLUMN_FIRST_NAME
+        sheet.cell(1, Author.COLUMN_IDX_LAST_NAME).value = Author.COLUMN_LAST_NAME
+        sheet.cell(1, Author.COLUMN_IDX_MIDDLE_NAME).value = Author.COLUMN_MIDDLE_NAME
+        sheet.cell(1, Author.COLUMN_IDX_FACULTY_NAME).value = Author.COLUMN_FACULTY_NAME
+        sheet.cell(1, Author.COLUMN_IDX_DEPARTMENT_NAME).value = Author.COLUMN_DEPARTMENT_NAME
+        sheet.cell(1, Author.COLUMN_IDX_LINK).value = Author.COLUMN_LINK_NAME
+
+    def write_to_sheet(self, sheet: worksheet, row: int):
+        sheet.cell(row, Author.COLUMN_IDX_FIRST_NAME).value = self.first_name
+        sheet.cell(row, Author.COLUMN_IDX_LAST_NAME).value = self.last_name
+        sheet.cell(row, Author.COLUMN_IDX_MIDDLE_NAME).value = self.middle_name
+        sheet.cell(row, Author.COLUMN_IDX_FACULTY_NAME).value = self.faculty
+        sheet.cell(row, Author.COLUMN_IDX_DEPARTMENT_NAME).value = self.department
+        sheet.cell(row, Author.COLUMN_IDX_LINK).value = self.link
 
     def __str__(self):
         return (self.first_name + ", " +

@@ -20,15 +20,8 @@ class CrawlerLinksWos:
     def __init__(self):
         self.list_authors = get_list_authors()
         self.set_authors = set(self.list_authors)
-        self.work_book = Workbook()
-        self.work_book.remove(self.work_book.active)
-        works_sheet = self.work_book.create_sheet(WORKS_WOS_SHEET_NAME)
-        works_sheet.title = WORKS_WOS_SHEET_NAME
-        works_sheet.cell(1, Work.COLUMN_IDX_AUTHOR).value = Work.COLUMN_AUTHOR
-        works_sheet.cell(1, Work.COLUMN_IDX_TITLE).value = Work.COLUMN_TITLE
-        works_sheet.cell(1, Work.COLUMN_IDX_YEAR).value = Work.COLUMN_YEAR
-        works_sheet.cell(1, Work.COLUMN_IDX_AUTHORS).value = Work.COLUMN_AUTHORS
-        self.cur_row = 2
+        self.cur_row = 1
+
 
     @staticmethod
     def format_middle_name(middle_name: str):
@@ -60,6 +53,16 @@ class CrawlerLinksWos:
         self.cur_row += 1
 
     def crawl_works(self):
+        self.work_book = Workbook()
+        self.work_book.remove(self.work_book.active)
+        works_sheet = self.work_book.create_sheet(WORKS_WOS_SHEET_NAME)
+        works_sheet.title = WORKS_WOS_SHEET_NAME
+        works_sheet.cell(1, Work.COLUMN_IDX_AUTHOR).value = Work.COLUMN_AUTHOR
+        works_sheet.cell(1, Work.COLUMN_IDX_TITLE).value = Work.COLUMN_TITLE
+        works_sheet.cell(1, Work.COLUMN_IDX_YEAR).value = Work.COLUMN_YEAR
+        works_sheet.cell(1, Work.COLUMN_IDX_AUTHORS).value = Work.COLUMN_AUTHORS
+        self.cur_row = 2
+
         for author in self.list_authors:
             print("{} {} {}".format(author.first_name, author.last_name, author.middle_name))
             if author.middle_name != Author.MIDDLE_NAME_NOT_FOUND:
@@ -78,19 +81,6 @@ class CrawlerLinksWos:
 
 
 if __name__ == "__main__":
-    '''
-    data = """@ARTICLE{
-year={2018},
-author={Petrovic-Savic Suzana,Ristic Branko M,Jovanovic Zoran,Matic Aleksandar,Prodanovic Nikola S,Anwer Nabil,Qiao Lihong,Devedzic Goran B},
-title={Parametric Model Variability of the Proximal Femoral Sculptural Shape},
-journal={INTERNATIONAL JOURNAL OF PRECISION ENGINEERING AND MANUFACTURING},
-volume={19},
-number={7},
-pages={1047-1054},
-document_type={Article},
-}
-    """
-    '''
     crawler = CrawlerLinksWos()
     crawler.crawl_works()
     #print(crawl_works_author("jovanovic", "zoran", ""))

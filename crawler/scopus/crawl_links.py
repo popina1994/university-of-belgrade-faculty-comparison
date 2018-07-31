@@ -38,7 +38,7 @@ def update_links():
     work_book = openpyxl.load_workbook(filename=AUTHORS_WOS_FILE_NAME)
     for sheet in work_book.worksheets:
         sheet.cell(1, Author.COLUMN_IDX_LINK).value = Author.COLUMN_LINK_NAME
-        for row in range(2, sheet.max_row):
+        for row in range(2, sheet.max_row + 1):
             first_name = sheet.cell(row, Author.COLUMN_IDX_FIRST_NAME).value
             last_name = sheet.cell(row, Author.COLUMN_IDX_LAST_NAME).value
             middle_names = sheet.cell(row, Author.COLUMN_IDX_MIDDLE_NAME).value
