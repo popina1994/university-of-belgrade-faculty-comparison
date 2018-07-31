@@ -1,10 +1,10 @@
 class Author:
-    def __init__(self, first_name: str, last_name: str, department: str, faculty: str):
+    def __init__(self, first_name: str, last_name: str, department: str, faculty: str, middle_name=""):
         self._first_name = first_name
         self._last_name = last_name
         self._department = department
         self._faculty = faculty
-        self._middle_name = ""
+        self._middle_name = middle_name
         self._link = ""
 
     COLUMN_FIRST_NAME = "Ime"
@@ -71,6 +71,20 @@ class Author:
     @link.setter
     def link(self, value):
         self._link = value
+
+    def __lt__(self, other):
+        if self.last_name != other.last_name:
+            return self.last_name < other.last_name
+        if self._first_name != other._first_name:
+            return self._first_name < other._first_name
+        return self.middle_name < other.middle_name
+
+    def __eq__(self, other):
+        return (self._first_name == other.first_name) and (self.last_name == other.last_name)\
+                and (self.middle_name == other.middle_name)
+
+    def __hash__(self):
+        return hash((self.first_name, self.last_name, self.middle_name))
 
     def __str__(self):
         return (self.first_name + ", " +
