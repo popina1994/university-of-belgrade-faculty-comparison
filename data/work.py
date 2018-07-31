@@ -1,6 +1,10 @@
+from openpyxl.worksheet import worksheet
+
+
 class Work:
-    def __init__(self, name: str, year: int, authors: str, doc_type: str):
-        self._name = name
+    def __init__(self, title: str, year: int, authors: str, doc_type: str, author: str = ""):
+        self._author = author
+        self._title = title
         self._year = year
         self._authors = authors
         self._doc_type = doc_type
@@ -16,12 +20,12 @@ class Work:
     COLUMN_IDX_AUTHORS = 4
 
     @property
-    def name(self):
-        return self._name
+    def title(self):
+        return self._title
 
-    @name.setter
-    def name(self, value):
-        self._name = value
+    @title.setter
+    def title(self, value):
+        self._title = value
 
     @property
     def authors(self):
@@ -30,6 +34,14 @@ class Work:
     @authors.setter
     def authors(self, value):
         self._authors = value
+
+    @property
+    def author(self):
+        return self._author
+
+    @author.setter
+    def author(self, value):
+        self._author = value
 
     @property
     def year(self):
@@ -46,3 +58,16 @@ class Work:
     @doc_type.setter
     def doc_type(self, value):
         self._doc_type = value
+
+    @staticmethod
+    def write_headers_to_sheet(sheet: worksheet):
+        sheet.cell(1, Work.COLUMN_IDX_AUTHOR).value = Work.COLUMN_AUTHOR
+        sheet.cell(1, Work.COLUMN_IDX_TITLE).value = Work.COLUMN_TITLE
+        sheet.cell(1, Work.COLUMN_IDX_YEAR).value = Work.COLUMN_YEAR
+        sheet.cell(1, Work.COLUMN_IDX_AUTHORS).value = Work.COLUMN_AUTHORS
+
+    def write_to_sheet(self, sheet: worksheet, row: int):
+        sheet.cell(row, Work.COLUMN_IDX_AUTHOR).value = self.author
+        sheet.cell(row, Work.COLUMN_IDX_TITLE).value = self.title
+        sheet.cell(row, Work.COLUMN_IDX_YEAR).value = self.year
+        sheet.cell(row, Work.COLUMN_IDX_AUTHORS).value = self.authors

@@ -1,4 +1,6 @@
-from  openpyxl.worksheet import worksheet
+from openpyxl.worksheet import worksheet
+
+
 class Author:
     def __init__(self, first_name: str, last_name: str, department: str, faculty: str, middle_name="", link=""):
         self._first_name = first_name
@@ -103,6 +105,13 @@ class Author:
         sheet.cell(row, Author.COLUMN_IDX_FACULTY_NAME).value = self.faculty
         sheet.cell(row, Author.COLUMN_IDX_DEPARTMENT_NAME).value = self.department
         sheet.cell(row, Author.COLUMN_IDX_LINK).value = self.link
+
+    @staticmethod
+    def id_name_static(first_name: str, last_name: str, middle_name: str):
+        return "{} {} {}".format(last_name, first_name, middle_name).strip()
+
+    def id_name(self):
+        return Author.id_name_static(self.first_name, self.last_name, self.middle_name)
 
     def __str__(self):
         return (self.first_name + ", " +

@@ -1,6 +1,7 @@
 from openpyxl import Workbook
 from data.author import Author
-AUTHORS_FILE_NAME = r"C:\Users\popina\Dropbox\Fakultet\Master Thesis\Data\People\authors.xlsx"
+from utilities.global_setup import DATA_PATH
+AUTHORS_FILE_NAME = DATA_PATH + r"\People\authors.xlsx"
 
 
 class AuthorsWorkbook:
