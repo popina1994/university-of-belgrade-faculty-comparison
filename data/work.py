@@ -2,22 +2,25 @@ from openpyxl.worksheet import worksheet
 
 
 class Work:
-    def __init__(self, title: str, year: int, authors: str, doc_type: str, author: str = ""):
+    def __init__(self, title: str, year: int, authors: str, doc_type: str, author: str = "", num_citations: int=0):
         self._author = author
         self._title = title
         self._year = year
         self._authors = authors
         self._doc_type = doc_type
+        self._num_citations = num_citations
 
     COLUMN_AUTHOR = "Glavni autor"
     COLUMN_TITLE = "Naslov"
     COLUMN_YEAR= "Godina"
     COLUMN_AUTHORS= "Autori"
+    COLUMN_NUM_CITATIONS = "Broj citiranja"
 
     COLUMN_IDX_AUTHOR = 1
     COLUMN_IDX_TITLE = 2
     COLUMN_IDX_YEAR = 3
     COLUMN_IDX_AUTHORS = 4
+    COLUMN_IDX_NUM_CITATIONS = 5
 
     @property
     def title(self):
@@ -59,15 +62,25 @@ class Work:
     def doc_type(self, value):
         self._doc_type = value
 
+    @property
+    def num_citations(self):
+        return self._num_citations
+
+    @num_citations.setter
+    def num_citations(self, value):
+        self._num_citations = value
+
     @staticmethod
     def write_headers_to_sheet(sheet: worksheet):
         sheet.cell(1, Work.COLUMN_IDX_AUTHOR).value = Work.COLUMN_AUTHOR
         sheet.cell(1, Work.COLUMN_IDX_TITLE).value = Work.COLUMN_TITLE
         sheet.cell(1, Work.COLUMN_IDX_YEAR).value = Work.COLUMN_YEAR
         sheet.cell(1, Work.COLUMN_IDX_AUTHORS).value = Work.COLUMN_AUTHORS
+        sheet.cell(1, Work.COLUMN_IDX_NUM_CITATIONS).value = Work.COLUMN_NUM_CITATIONS
 
     def write_to_sheet(self, sheet: worksheet, row: int):
         sheet.cell(row, Work.COLUMN_IDX_AUTHOR).value = self.author
         sheet.cell(row, Work.COLUMN_IDX_TITLE).value = self.title
         sheet.cell(row, Work.COLUMN_IDX_YEAR).value = self.year
         sheet.cell(row, Work.COLUMN_IDX_AUTHORS).value = self.authors
+        sheet.cell(row, Work.COLUMN_IDX_NUM_CITATIONS).value = self.num_citations
