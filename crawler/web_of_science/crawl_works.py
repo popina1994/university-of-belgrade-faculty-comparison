@@ -23,6 +23,7 @@ WOS_JOURNAL_IMPACT_FACTOR_TEXT_CELL = "oblast  / impakt faktor"
 NUM_WORKS_PER_PAGE = 10
 LAST_YEAR = 2017
 
+
 class CrawlerLinksWos:
     idx_gen = 0
 
@@ -59,8 +60,10 @@ class CrawlerLinksWos:
     def crawl_wos_and_journal_links(self, first_name: str, last_name: str, middle_name:str, number_works: int):
         wos_links = []
         journal_links = []
-        for offset in range(0, number_works // NUM_WORKS_PER_PAGE + 1):
+        num_pages = number_works // NUM_WORKS_PER_PAGE + 1
+        for offset in range(0, num_pages):
             path = KOBSON_WOS.format(last_name, first_name, CrawlerLinksWos.format_middle_name(middle_name), offset)
+            links_to_crawl = NUM_WORKS_PER_PAGE if (offset < (num_pages - 1)) else number_works % NUM_WORKS_PER_PAGE
             r = requests.get(path, headers=self.get_random_header())
             r.encoding = "utf-8"
             data = r.text
@@ -76,6 +79,9 @@ class CrawlerLinksWos:
                         if WOS_JOURNAL_RANG_TEXT_CELL.lower() == link.text.strip().lower():
                             journal_link = KOBSON_SERICE_ROOT.format(link.get('href'))
                     journal_links.append(journal_link)
+                links_to_crawl -= 1
+                if links_to_crawl == 0:
+                    break
 
         return journal_links, wos_links
 
@@ -89,27 +95,27 @@ class CrawlerLinksWos:
                 return num_citation.text
 
     @staticmethod
-    def find_2017_offset(table):
+    def find_offset_year(table, year: int):
         for row in table.find_all("tr"):
             row_header_elem = row.find("td", {"class": "first dblue"})
             if row_header_elem is not None:
                 for offset, cell in enumerate(row.find_all("td", {"class": "dblue"})):
-                    if cell.text == str(LAST_YEAR):
+                    if cell.text == str(year):
                         return offset
 
     @staticmethod
     def get_impact_factor(soup: BeautifulSoup, is_five_year, year: int):
-        skip_if = is_five_year
+        skip_impact_factor = is_five_year
         skip_header = True
         for data_div in soup.find_all("div", {"class": "resultHolder"}):
             if skip_header:
                 skip_header = False
                 continue
             for table in data_div.find_all("table", {"class": "type categories results"}):
-                if skip_if:
-                    skip_if = False
+                if skip_impact_factor:
+                    skip_impact_factor = False
                     continue
-                offset = CrawlerLinksWos.find_2017_offset(table)
+                offset = CrawlerLinksWos.find_offset_year(table, year)
                 if offset is None:
                     return None
                 for row in table.find_all("tr"):
@@ -148,12 +154,15 @@ class CrawlerLinksWos:
                     impact_factor, impact_factor5 = self.get_impact_factors(journal_links[work_id], LAST_YEAR)
                     print(impact_factor)
                     print(impact_factor5)
+                    num_citations = self.get_num_citations(wos_links[work_id])
+                    print(num_citations)
                     work = Work(title=work_bib["title"], authors=work_bib["author"].replace("-", " "),
                                 year=work_bib["year"], doc_type=work_bib['document_type'],
                                 author="{} {} {}".format(author.last_name, author.first_name, author.middle_name).strip(),
-                                num_citations=0, document_name=work_bib['journal'],
-                                impact_factor=impact_factor,
-                                impact_factor5=impact_factor5)
+                                num_citations=num_citations,
+                                document_name=work_bib['journal'],
+                                impact_factor=impact_factor, impact_factor5=impact_factor5,
+                                department=author.department, faculty=author.faculty)
                     works_work_book.save_work(work)
                     print(work_bib["title"])
             else:
