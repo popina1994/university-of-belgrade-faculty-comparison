@@ -16,7 +16,12 @@ from data.graph_edge import GraphEdge
 REGEX_AUTHOR_STRING = "author\s*=\s*\{[\w ,-.()]+\},"
 KOBSON_WOS_BIBTEX = "http://kobson.nb.rs/aspx/wos/export.aspx?autor={}%20{}{}&samoar=&format=BibTeX"
 KOBSON_WOS = "http://kobson.nb.rs/nauka_u_srbiji.132.html?autor={}%20{}{}&offset={}"
+KOBSON_SERICE_ROOT = "http://kobson.nb.rs/{}"
 WOS_TEXT_CELL = "ISI/Web of Science"
+WOS_JOURNAL_RANG_TEXT_CELL = "Rang časopisa"
+WOS_JOURNAL_IMPACT_FACTOR_TEXT_CELL = "oblast  / impakt faktor"
+NUM_WORKS_PER_PAGE = 10
+LAST_YEAR = 2017
 
 class CrawlerLinksWos:
     idx_gen = 0
@@ -51,9 +56,10 @@ class CrawlerLinksWos:
     def get_random_header(self):
         return {"User-Agent": self.user_agent.random}
 
-    def crawl_wos_links(self, first_name: str, last_name: str, middle_name:str, number_works: int):
+    def crawl_wos_and_journal_links(self, first_name: str, last_name: str, middle_name:str, number_works: int):
         wos_links = []
-        for offset in range(0, number_works // 10 + 1):
+        journal_links = []
+        for offset in range(0, number_works // NUM_WORKS_PER_PAGE + 1):
             path = KOBSON_WOS.format(last_name, first_name, CrawlerLinksWos.format_middle_name(middle_name), offset)
             r = requests.get(path, headers=self.get_random_header())
             r.encoding = "utf-8"
@@ -61,11 +67,17 @@ class CrawlerLinksWos:
             soup = BeautifulSoup(data)
             for green_rows in soup.find_all("tr", {"class": "greenRow"}):
                 for rCell in green_rows.find_all("td", {"class": "rCell"}):
+                    wos_link_added = False
+                    journal_link = None
                     for link in rCell.find_all("a", href=True):
-                        if WOS_TEXT_CELL.lower() == link.text.strip().lower():
+                        if (not wos_link_added) and (WOS_TEXT_CELL.lower() == link.text.strip().lower()):
                             wos_links.append(link.get('href'))
-                            break
-        return wos_links
+                            wos_link_added = True
+                        if WOS_JOURNAL_RANG_TEXT_CELL.lower() == link.text.strip().lower():
+                            journal_link = KOBSON_SERICE_ROOT.format(link.get('href'))
+                    journal_links.append(journal_link)
+
+        return journal_links, wos_links
 
     def get_num_citations(self, wos_link: str):
         r = requests.get(wos_link, headers=self.get_random_header())
@@ -76,6 +88,49 @@ class CrawlerLinksWos:
             for num_citation in citation_div.find_all("span", {"class": "large-number"}):
                 return num_citation.text
 
+    @staticmethod
+    def find_2017_offset(table):
+        for row in table.find_all("tr"):
+            row_header_elem = row.find("td", {"class": "first dblue"})
+            if row_header_elem is not None:
+                for offset, cell in enumerate(row.find_all("td", {"class": "dblue"})):
+                    if cell.text == str(LAST_YEAR):
+                        return offset
+
+    @staticmethod
+    def get_impact_factor(soup: BeautifulSoup, is_five_year, year: int):
+        skip_if = is_five_year
+        skip_header = True
+        for data_div in soup.find_all("div", {"class": "resultHolder"}):
+            if skip_header:
+                skip_header = False
+                continue
+            for table in data_div.find_all("table", {"class": "type categories results"}):
+                if skip_if:
+                    skip_if = False
+                    continue
+                offset = CrawlerLinksWos.find_2017_offset(table)
+                if offset is None:
+                    return None
+                for row in table.find_all("tr"):
+                    row_header_elem = row.find("td", {"class": "first lblue"})
+                    row_header = "" if row_header_elem is None else row_header_elem.text
+                    if row_header.lower() == WOS_JOURNAL_IMPACT_FACTOR_TEXT_CELL.lower():
+                        return row.find_all("td", {"class": "lblue"})[offset].text
+
+    def get_impact_factors(self, journal_link: str, year: int):
+        if journal_link is None:
+            return "", ""
+        r = requests.get(journal_link, headers=self.get_random_header())
+        r.encoding = "utf-8"
+        data = r.text
+        soup = BeautifulSoup(data)
+        impact_factor_2017 = CrawlerLinksWos.get_impact_factor(soup, False, year)
+        impact_factor_2017 = "" if impact_factor_2017 is None else impact_factor_2017
+        impact_factor5_2017 = CrawlerLinksWos.get_impact_factor(soup, True, year)
+        impact_factor5_2017 = "" if impact_factor5_2017 is None else impact_factor5_2017
+        return impact_factor_2017, impact_factor5_2017
+
     def crawl_works(self):
         works_work_book = WorksWorkbook()
 
@@ -85,14 +140,20 @@ class CrawlerLinksWos:
                 path, works = CrawlerLinksWos.crawl_works_author(author.first_name,
                                                                  author.last_name.replace(" ", "-"),
                                                                  author.middle_name)
-                wos_links = self.crawl_wos_links(author.first_name, author.last_name.replace(" ", "-"),
-                                                 author.middle_name, works.__len__())
+                journal_links, wos_links = self.crawl_wos_and_journal_links(
+                                            author.first_name, author.last_name.replace(" ", "-"),
+                                            author.middle_name, works.__len__())
                 print("Number of works {}".format(works.__len__()))
                 for work_id, work_bib in enumerate(works):
+                    impact_factor, impact_factor5 = self.get_impact_factors(journal_links[work_id], LAST_YEAR)
+                    print(impact_factor)
+                    print(impact_factor5)
                     work = Work(title=work_bib["title"], authors=work_bib["author"].replace("-", " "),
-                                year=work_bib["year"], doc_type="",
+                                year=work_bib["year"], doc_type=work_bib['document_type'],
                                 author="{} {} {}".format(author.last_name, author.first_name, author.middle_name).strip(),
-                                num_citations=self.get_num_citations(wos_links[work_id]))
+                                num_citations=0, document_name=work_bib['journal'],
+                                impact_factor=impact_factor,
+                                impact_factor5=impact_factor5)
                     works_work_book.save_work(work)
                     print(work_bib["title"])
             else:
