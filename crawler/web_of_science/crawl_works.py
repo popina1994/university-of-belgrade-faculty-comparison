@@ -12,11 +12,12 @@ from crawler.web_of_science.crawl_names import get_list_authors
 from data.author import Author
 from data.work import Work
 from data.graph_edge import GraphEdge
+from math import ceil
 
 REGEX_AUTHOR_STRING = "author\s*=\s*\{[\w ,-.()]+\},"
 KOBSON_WOS_BIBTEX = "http://kobson.nb.rs/aspx/wos/export.aspx?autor={}%20{}{}&samoar=&format=BibTeX"
 KOBSON_WOS = "http://kobson.nb.rs/nauka_u_srbiji.132.html?autor={}%20{}{}&offset={}"
-KOBSON_SERICE_ROOT = "http://kobson.nb.rs/{}"
+KOBSON_SERVICE_ROOT = "http://kobson.nb.rs/{}"
 WOS_TEXT_CELL = "ISI/Web of Science"
 WOS_JOURNAL_RANG_TEXT_CELL = "Rang časopisa"
 WOS_JOURNAL_IMPACT_FACTOR_TEXT_CELL = "oblast  / impakt faktor"
@@ -60,10 +61,12 @@ class CrawlerLinksWos:
     def crawl_wos_and_journal_links(self, first_name: str, last_name: str, middle_name:str, number_works: int):
         wos_links = []
         journal_links = []
-        num_pages = number_works // NUM_WORKS_PER_PAGE + 1
+        num_pages = -(-number_works // NUM_WORKS_PER_PAGE)
         for offset in range(0, num_pages):
             path = KOBSON_WOS.format(last_name, first_name, CrawlerLinksWos.format_middle_name(middle_name), offset)
-            links_to_crawl = NUM_WORKS_PER_PAGE if (offset < (num_pages - 1)) else number_works % NUM_WORKS_PER_PAGE
+            links_to_crawl = NUM_WORKS_PER_PAGE if (offset < (num_pages - 1)) \
+                                                else number_works - (num_pages - 1) * NUM_WORKS_PER_PAGE
+            print(links_to_crawl)
             r = requests.get(path, headers=self.get_random_header())
             r.encoding = "utf-8"
             data = r.text
@@ -77,7 +80,7 @@ class CrawlerLinksWos:
                             wos_links.append(link.get('href'))
                             wos_link_added = True
                         if WOS_JOURNAL_RANG_TEXT_CELL.lower() == link.text.strip().lower():
-                            journal_link = KOBSON_SERICE_ROOT.format(link.get('href'))
+                            journal_link = KOBSON_SERVICE_ROOT.format(link.get('href'))
                     journal_links.append(journal_link)
                 links_to_crawl -= 1
                 if links_to_crawl == 0:
@@ -152,10 +155,9 @@ class CrawlerLinksWos:
                 print("Number of works {}".format(works.__len__()))
                 for work_id, work_bib in enumerate(works):
                     impact_factor, impact_factor5 = self.get_impact_factors(journal_links[work_id], LAST_YEAR)
-                    print(impact_factor)
                     print(impact_factor5)
                     num_citations = self.get_num_citations(wos_links[work_id])
-                    print(num_citations)
+                    print("if{} if5{} num_cit {}".format(impact_factor, impact_factor5, num_citations))
                     work = Work(title=work_bib["title"], authors=work_bib["author"].replace("-", " "),
                                 year=work_bib["year"], doc_type=work_bib['document_type'],
                                 author="{} {} {}".format(author.last_name, author.first_name, author.middle_name).strip(),
