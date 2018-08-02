@@ -155,7 +155,6 @@ class CrawlerLinksWos:
                 print("Number of works {}".format(works.__len__()))
                 for work_id, work_bib in enumerate(works):
                     impact_factor, impact_factor5 = self.get_impact_factors(journal_links[work_id], LAST_YEAR)
-                    print(impact_factor5)
                     num_citations = self.get_num_citations(wos_links[work_id])
                     print("if{} if5{} num_cit {}".format(impact_factor, impact_factor5, num_citations))
                     work = Work(title=work_bib["title"], authors=work_bib["author"].replace("-", " "),
@@ -190,7 +189,7 @@ class CrawlerLinksWos:
 
 if __name__ == "__main__":
     crawler = CrawlerLinksWos()
-    crawler.crawl_works()
-    #crawler.generate_graph_known_authors()
+    #crawler.crawl_works()
+    crawler.generate_graph_known_authors()
     #print(crawl_works_author("jovanovic", "zoran", ""))
     #print(parse_bib_tex(data))
