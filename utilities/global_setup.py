@@ -6,3 +6,4 @@ PROXY ={
 }
 
 DATA_PATH = r"C:\Users\popina\Dropbox\Fakultet\Master Thesis\Data"
+SELENIUM_CHROME_DRIVER_PATH = r"C:\Users\popina\PycharmProjects\UniversityComparison\chromedriver\chromedriver.exe"

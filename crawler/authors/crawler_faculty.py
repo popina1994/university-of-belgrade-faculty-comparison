@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from utilities.global_setup import PROXY
+from utilities.global_setup import PROXY, SELENIUM_CHROME_DRIVER_PATH
 from data.author import Author
 import requests
 
@@ -25,7 +25,7 @@ class CrawlerFaculty(ABC):
 
     def parse(self):
         if self.use_source:
-            driver = webdriver.Chrome("C:\\Users\\popina\\PycharmProjects\\UniversityComparison\\chromedriver\\chromedriver.exe")
+            driver = webdriver.Chrome(SELENIUM_CHROME_DRIVER_PATH)
             driver.get(self.home_page)
             data = driver.page_source
         else:

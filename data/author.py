@@ -117,4 +117,5 @@ class Author:
         return (self.first_name + ", " +
                 self.last_name + ", " +
                 self.department + ", " +
-                self.faculty + ", ")
+                self.faculty + ", " +
+                self.link)

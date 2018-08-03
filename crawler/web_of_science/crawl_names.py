@@ -70,6 +70,7 @@ def get_list_authors():
 
 
 def write_all_authors():
+    # Only used for generation of nodes in gephi.
     list_authors = get_list_authors()
     work_book = Workbook()
     work_book.remove(work_book.active)
