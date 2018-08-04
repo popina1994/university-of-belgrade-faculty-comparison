@@ -10,6 +10,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from data.workbooks.graph_edges_workbook import GraphEdgesWorkbook
 from data.workbooks.works_workbook import WorksWorkbook, WORKS_SHEET_NAME, WORKS_SCOPUS_FILE_NAME
+from language.language_converter import CyrillicLatin
 from utilities.global_setup import SELENIUM_CHROME_DRIVER_PATH, DATA_PATH
 from bibtexparser.bparser import BibTexParser
 import openpyxl
@@ -27,19 +28,11 @@ TIME_LIMIT_WAIT = 60
 
 
 class CrawlerLinksScopus:
-    idx_gen = 0
-
     def __init__(self):
         self.list_authors = get_list_authors()
         list_name_authors = [author.id_name().lower() for author in self.list_authors]
         self.set_name_authors = set(list_name_authors)
-        self.cur_row = 1
-        self.user_agent = UserAgent()
         self.driver = webdriver.Chrome(SELENIUM_CHROME_DRIVER_PATH)
-
-    @staticmethod
-    def format_middle_name(middle_name: str):
-        return "" if middle_name == "" else "%20" + middle_name
 
     @staticmethod
     def parse_bib_tex_file(path: str):
@@ -226,6 +219,39 @@ class CrawlerLinksScopus:
                 print("No works available")
         works_work_book.save()
 
+    def find_author(self, last_name: str, first_name_initial: str):
+        for author_it in self.list_authors:
+            if (author_it.last_name.lower() == last_name) and \
+               (first_name_initial.lower() == author_it.first_name[0].lower()) and (author_it.link != ""):
+                return author_it
+
+    def convert_authors_to_real_names(self):
+        work_book_works = openpyxl.load_workbook(filename=WORKS_SCOPUS_FILE_NAME)
+        sheet = work_book_works[WORKS_SHEET_NAME]
+        for row in range(2, sheet.max_row + 1):
+            authors = sheet.cell(row, Work.COLUMN_IDX_AUTHORS).value.lower()
+            authors_new = ""
+            first = True
+            for author in authors.split(" and "):
+                author_sub_names = author.split(",")
+                try:
+                    last_name = CyrillicLatin.convert_serb_latin_to_latin(author_sub_names[0].strip())
+                    first_name_initial_exist = author_sub_names.__len__() > 1
+                    first_name_initial = "" if not first_name_initial_exist  \
+                                        else CyrillicLatin.convert_serb_latin_to_latin(author_sub_names[1].strip()[0])
+                    author_search = self.find_author(last_name, first_name_initial)
+                    author_new = author_search.id_name() if author_search is not None \
+                        else last_name + " " + first_name_initial + " DOT"
+                    if not first:
+                        authors_new += ","
+                    first = False
+                except:
+                    print("Test")
+                authors_new += author_new
+
+            sheet.cell(row, Work.COLUMN_IDX_AUTHORS).value = authors_new
+        work_book_works.save(WORKS_SCOPUS_FILE_NAME)
+
     def generate_graph_known_authors(self):
         work_book_works = openpyxl.load_workbook(filename=WORKS_SCOPUS_FILE_NAME)
         sheet = work_book_works[WORKS_SHEET_NAME]
@@ -245,4 +271,5 @@ class CrawlerLinksScopus:
 
 if __name__ == "__main__":
     crawler = CrawlerLinksScopus()
+    #crawler.convert_authors_to_real_names()
     crawler.generate_graph_known_authors()

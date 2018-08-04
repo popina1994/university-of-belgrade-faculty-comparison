@@ -191,5 +191,3 @@ if __name__ == "__main__":
     crawler = CrawlerLinksWos()
     #crawler.crawl_works()
     crawler.generate_graph_known_authors()
-    #print(crawl_works_author("jovanovic", "zoran", ""))
-    #print(parse_bib_tex(data))
