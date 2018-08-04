@@ -2,7 +2,6 @@ import os
 import shutil
 import time
 
-import bibtexparser
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 from selenium.webdriver.common.by import By
@@ -14,14 +13,13 @@ from data.workbooks.works_workbook import WorksWorkbook, WORKS_WOS_FILE_NAME, WO
 from utilities.global_setup import PROXY, SELENIUM_CHROME_DRIVER_PATH, DATA_PATH
 from bibtexparser.bparser import BibTexParser
 import requests
-import re
 import openpyxl
 from crawler.scopus.crawl_links import get_list_authors
 from data.author import Author
 from data.work import Work
 from data.graph_edge import GraphEdge
 from selenium import webdriver
-from bibtexparser.customization import homogenize_latex_encoding, convert_to_unicode
+from bibtexparser.customization import convert_to_unicode
 
 REGEX_AUTHOR_STRING = "author\s*=\s*\{[\w ,-.()]+\},"
 DOWNLOAD_FILE_PATH = DATA_PATH + "\\Work\\scopus"
@@ -75,16 +73,58 @@ class CrawlerLinksScopus:
         element.click()
 
     @staticmethod
-    def crawl_works_author(author: Author):
+    def download_bibtex(driver, first_download: bool):
         SELECT_BOX_X_PATH = '//*[@id="export_results"]/span'
         STUPID_POP_UP_X_PATH = '//*[@id="_pendo-close-guide_"]'
         RADIO_BUTTON_X_PATH = '//*[@id="exportList"]/li[5]'
         EXPORT_BUTTON_X_PATH = '//*[@id="exportTrigger"]'
-        works = {}
-        # TODO: Test for deleting existing/creating multiple
+        CrawlerLinksScopus.wait_and_click(driver, SELECT_BOX_X_PATH)
+        if first_download:
+            CrawlerLinksScopus.wait_and_click(driver, STUPID_POP_UP_X_PATH)
+        CrawlerLinksScopus.wait_and_click(driver, RADIO_BUTTON_X_PATH)
+        CrawlerLinksScopus.wait_and_click(driver, EXPORT_BUTTON_X_PATH)
+
+    @staticmethod
+    def get_num_citation_for_document(row):
+        td = row.find_all("td", {"class": "textRight"})[-1]
+        ahref = td.find("a")
+        cite = 0 if ahref is None else ahref.text.strip()
+        return cite
+
+    @staticmethod
+    def get_journal_link_for_document(row):
+        td = row.find_all("td")[0]
+        ahref = td.find("a")
+        journal_link = 0 if ahref is None else ahref.get('href')
+        return journal_link
+
+    @staticmethod
+    def get_num_citations_and_journal_link(driver):
+        SELECT_MENU_X_PATH = '//*[@id="resultsPerPage-button"]/span[1]'
+        SELECT_OPTION_X_PATH = '//*[@id="resultsPerPage-menu"]/li[4]'
+        CrawlerLinksScopus.wait_and_click(driver, SELECT_MENU_X_PATH)
+        CrawlerLinksScopus.wait_and_click(driver, SELECT_OPTION_X_PATH)
+        time.sleep(5)
+        data = driver.page_source
+        soup = BeautifulSoup(data)
+
+        citations = []
+        journal_links = []
+        for row in soup.find_all("tr", {"class": "searchArea"}):
+            cite = CrawlerLinksScopus.get_num_citation_for_document(row)
+            citations.append(cite)
+            print(cite)
+            journal_link = CrawlerLinksScopus.get_journal_link_for_document(row)
+            journal_links.append(journal_link)
+        return citations, journal_links
+
+    @staticmethod
+    def crawl_works_citations_and_journal_links_author(author: Author):
         download_dir = "{}\\{}_{}".format(DOWNLOAD_FILE_PATH, author.last_name, author.first_name)
         driver = CrawlerLinksScopus.init_driver_for_works_by_author(download_dir)
         works = []
+        citations_total = []
+        journal_links_total = []
         print(author.first_name + " " + author.last_name)
         first_download = True
 
@@ -92,126 +132,49 @@ class CrawlerLinksScopus:
             path = path.strip()
             print(path)
             driver.get(path)
-            CrawlerLinksScopus.wait_and_click(driver, SELECT_BOX_X_PATH)
-            if first_download:
-                CrawlerLinksScopus.wait_and_click(driver, STUPID_POP_UP_X_PATH)
-                first_download = False
-            CrawlerLinksScopus.wait_and_click(driver, RADIO_BUTTON_X_PATH)
-            CrawlerLinksScopus.wait_and_click(driver, EXPORT_BUTTON_X_PATH)
+            CrawlerLinksScopus.download_bibtex(driver, first_download)
+            first_download = False
+
+            citations, journal_links = CrawlerLinksScopus.get_num_citations_and_journal_link(driver)
+            citations_total += citations
+            journal_links_total += journal_links
+
+        # Latency of download
         time.sleep(.3)
         for file in os.listdir(download_dir):
             works += CrawlerLinksScopus.parse_bib_tex_file(os.path.join(download_dir, file))
-        return works
-
-    def get_random_header(self):
-        return {"User-Agent": self.user_agent.random}
-
-    def crawl_wos_and_journal_links(self, first_name: str, last_name: str, middle_name:str, number_works: int):
-        wos_links = []
-        journal_links = []
-        num_pages = -(-number_works // NUM_WORKS_PER_PAGE)
-        for offset in range(0, num_pages):
-            path = KOBSON_WOS.format(last_name, first_name, CrawlerLinksScopus.format_middle_name(middle_name), offset)
-            links_to_crawl = NUM_WORKS_PER_PAGE if (offset < (num_pages - 1)) \
-                                                else number_works - (num_pages - 1) * NUM_WORKS_PER_PAGE
-            print(links_to_crawl)
-            r = requests.get(path, headers=self.get_random_header())
-            r.encoding = "utf-8"
-            data = r.text
-            soup = BeautifulSoup(data)
-            for green_rows in soup.find_all("tr", {"class": "greenRow"}):
-                for rCell in green_rows.find_all("td", {"class": "rCell"}):
-                    wos_link_added = False
-                    journal_link = None
-                    for link in rCell.find_all("a", href=True):
-                        if (not wos_link_added) and (WOS_TEXT_CELL.lower() == link.text.strip().lower()):
-                            wos_links.append(link.get('href'))
-                            wos_link_added = True
-                        if WOS_JOURNAL_RANG_TEXT_CELL.lower() == link.text.strip().lower():
-                            journal_link = KOBSON_SERVICE_ROOT.format(link.get('href'))
-                    journal_links.append(journal_link)
-                links_to_crawl -= 1
-                if links_to_crawl == 0:
-                    break
-
-        return journal_links, wos_links
-
-    def get_num_citations(self, wos_link: str):
-        r = requests.get(wos_link, headers=self.get_random_header())
-        r.encoding = "utf-8"
-        data = r.text
-        soup = BeautifulSoup(data)
-        for citation_div in soup.find_all("div", {"class": "flex-row-partition1"}):
-            for num_citation in citation_div.find_all("span", {"class": "large-number"}):
-                return num_citation.text
+        return works, citations_total, journal_links_total
 
     @staticmethod
-    def find_offset_year(table, year: int):
-        for row in table.find_all("tr"):
-            row_header_elem = row.find("td", {"class": "first dblue"})
-            if row_header_elem is not None:
-                for offset, cell in enumerate(row.find_all("td", {"class": "dblue"})):
-                    if cell.text == str(year):
-                        return offset
-
-    @staticmethod
-    def get_impact_factor(soup: BeautifulSoup, is_five_year, year: int):
-        skip_impact_factor = is_five_year
-        skip_header = True
-        for data_div in soup.find_all("div", {"class": "resultHolder"}):
-            if skip_header:
-                skip_header = False
-                continue
-            for table in data_div.find_all("table", {"class": "type categories results"}):
-                if skip_impact_factor:
-                    skip_impact_factor = False
-                    continue
-                offset = CrawlerLinksScopus.find_offset_year(table, year)
-                if offset is None:
-                    return None
-                for row in table.find_all("tr"):
-                    row_header_elem = row.find("td", {"class": "first lblue"})
-                    row_header = "" if row_header_elem is None else row_header_elem.text
-                    if row_header.lower() == WOS_JOURNAL_IMPACT_FACTOR_TEXT_CELL.lower():
-                        return row.find_all("td", {"class": "lblue"})[offset].text
-
-    def get_impact_factors(self, journal_link: str, year: int):
-        if journal_link is None:
-            return "", ""
-        r = requests.get(journal_link, headers=self.get_random_header())
-        r.encoding = "utf-8"
-        data = r.text
-        soup = BeautifulSoup(data)
-        impact_factor_2017 = CrawlerLinksScopus.get_impact_factor(soup, False, year)
-        impact_factor_2017 = "" if impact_factor_2017 is None else impact_factor_2017
-        impact_factor5_2017 = CrawlerLinksScopus.get_impact_factor(soup, True, year)
-        impact_factor5_2017 = "" if impact_factor5_2017 is None else impact_factor5_2017
-        return impact_factor_2017, impact_factor5_2017
+    def get_impact_factor(journal_link: str):
+        if journal_link is "":
+            return ""
+        driver = webdriver.Chrome(SELENIUM_CHROME_DRIVER_PATH)
+        driver.get(journal_link)
+        soup = BeautifulSoup(driver.page_source)
+        time.sleep(2)
+        field_weighted_citation_impact = soup.find_all("div", {"class": "metricCount"})[1].text
+        return field_weighted_citation_impact
 
     def crawl_works(self):
         works_work_book = WorksWorkbook(is_wos=False)
 
         for author in self.list_authors:
             if author.link != "":
-                works = CrawlerLinksScopus.crawl_works_author(author)
-                '''
-                journal_links, wos_links = self.crawl_wos_and_journal_links(
-                                            author.first_name, author.last_name.replace(" ", "-"),
-                                            author.middle_name, works.__len__())
+                works, citations, journal_links = \
+                    CrawlerLinksScopus.crawl_works_citations_and_journal_links_author(author)
                 print("Number of works {}".format(works.__len__()))
-                '''
                 for work_id, work_bib in enumerate(works):
-                    '''
-                    impact_factor, impact_factor5 = self.get_impact_factors(journal_links[work_id], LAST_YEAR)
-                    num_citations = self.get_num_citations(wos_links[work_id])
-                    print("if{} if5{} num_cit {}".format(impact_factor, impact_factor5, num_citations))
-                    '''
+
+                    impact_factor= CrawlerLinksScopus.get_impact_factor(journal_links[work_id])
+                    print("if{} num_cit {}".format(impact_factor, citations[work_id]))
+
                     work = Work(title=work_bib["title"], authors=work_bib["author"].replace("-", " "),
                                 year=work_bib["year"], doc_type=work_bib['document_type'],
                                 author="{} {} {}".format(author.last_name, author.first_name, author.middle_name).strip(),
-                                num_citations=0,
+                                num_citations=citations[work_id],
                                 document_name=work_bib.get('journal', ""),
-                                impact_factor=0, impact_factor5=0,
+                                impact_factor=impact_factor, impact_factor5="",
                                 department=author.department, faculty=author.faculty)
                     works_work_book.save_work(work)
                     print(work_bib["title"])
