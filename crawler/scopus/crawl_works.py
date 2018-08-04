@@ -9,10 +9,9 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
 from data.workbooks.graph_edges_workbook import GraphEdgesWorkbook
-from data.workbooks.works_workbook import WorksWorkbook, WORKS_WOS_FILE_NAME, WORKS_SHEET_NAME
-from utilities.global_setup import PROXY, SELENIUM_CHROME_DRIVER_PATH, DATA_PATH
+from data.workbooks.works_workbook import WorksWorkbook, WORKS_SHEET_NAME, WORKS_SCOPUS_FILE_NAME
+from utilities.global_setup import SELENIUM_CHROME_DRIVER_PATH, DATA_PATH
 from bibtexparser.bparser import BibTexParser
-import requests
 import openpyxl
 from crawler.scopus.crawl_links import get_list_authors
 from data.author import Author
@@ -178,9 +177,12 @@ class CrawlerLinksScopus:
 
     def get_journal_factors(self, journal_link: str):
         if journal_link is "":
-            return ""
+            return "", "", ""
         print(journal_link)
         success = False
+        cite_score = ""
+        sjr = ""
+        snip = ""
         while not success:
             #driver = webdriver.Chrome(SELENIUM_CHROME_DRIVER_PATH)
             self.driver.get(journal_link)
@@ -192,7 +194,7 @@ class CrawlerLinksScopus:
                 snip = soup.find_all("div", {"class": ["value", "fontMedLarge", "lineHeight2"]})[2].text
                 success = True
             except:
-                success = False
+                break
 
         return cite_score, sjr, snip
 
@@ -225,9 +227,9 @@ class CrawlerLinksScopus:
         works_work_book.save()
 
     def generate_graph_known_authors(self):
-        work_book_works = openpyxl.load_workbook(filename=WORKS_WOS_FILE_NAME)
+        work_book_works = openpyxl.load_workbook(filename=WORKS_SCOPUS_FILE_NAME)
         sheet = work_book_works[WORKS_SHEET_NAME]
-        work_book_edges = GraphEdgesWorkbook()
+        work_book_edges = GraphEdgesWorkbook(is_wos=False)
         for row in range(2, sheet.max_row + 1):
             author1 = sheet.cell(row, Work.COLUMN_IDX_AUTHOR).value.lower()
             authors = sheet.cell(row, Work.COLUMN_IDX_AUTHORS).value.lower()
@@ -243,4 +245,4 @@ class CrawlerLinksScopus:
 
 if __name__ == "__main__":
     crawler = CrawlerLinksScopus()
-    crawler.crawl_works()
+    crawler.generate_graph_known_authors()

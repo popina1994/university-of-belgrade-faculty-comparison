@@ -173,7 +173,7 @@ class CrawlerLinksWos:
     def generate_graph_known_authors(self):
         work_book_works = openpyxl.load_workbook(filename=WORKS_WOS_FILE_NAME)
         sheet = work_book_works[WORKS_SHEET_NAME]
-        work_book_edges = GraphEdgesWorkbook()
+        work_book_edges = GraphEdgesWorkbook(is_wos=True)
         for row in range(2, sheet.max_row + 1):
             author1 = sheet.cell(row, Work.COLUMN_IDX_AUTHOR).value.lower()
             authors = sheet.cell(row, Work.COLUMN_IDX_AUTHORS).value.lower()
@@ -189,7 +189,7 @@ class CrawlerLinksWos:
 
 if __name__ == "__main__":
     crawler = CrawlerLinksWos()
-    crawler.crawl_works()
-    #crawler.generate_graph_known_authors()
+    #crawler.crawl_works()
+    crawler.generate_graph_known_authors()
     #print(crawl_works_author("jovanovic", "zoran", ""))
     #print(parse_bib_tex(data))
