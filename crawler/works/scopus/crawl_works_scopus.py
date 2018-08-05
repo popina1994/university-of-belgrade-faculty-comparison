@@ -8,17 +8,17 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawler.authors.crawler_matf import MATF_DEPARTMENT, MATF_FACULTY_NAME
+from crawler.works.crawl_works import CrawlerWorks
+from crawler.works.scopus.crawl_links import get_list_authors
 from data.tables.work_table.work_scopus import WorkScopus
-from data.workbooks.graph_edges_workbook import GraphEdgesWorkbook
-from data.workbooks.works_workbook import WorksWorkbook, WORKS_SHEET_NAME, WORKS_SCOPUS_FILE_NAME
+from data.workbooks.works_workbook import WorksWorkbook, WORKS_SHEET_NAME, WORKS_FILE_NAME, \
+    WorkTypes
 from language.language_converter import CyrillicLatin
 from utilities.global_setup import SELENIUM_CHROME_DRIVER_PATH, DATA_PATH
 from bibtexparser.bparser import BibTexParser
 import openpyxl
-from crawler.scopus.crawl_links import get_list_authors
 from data.tables.author import Author
 from data.tables.work_table.work import Work
-from data.tables.graph_edge import GraphEdge
 from selenium import webdriver
 from bibtexparser.customization import convert_to_unicode
 
@@ -28,12 +28,13 @@ SCOPUS_ROOT = 'https://www.scopus.com'
 TIME_LIMIT_WAIT = 60
 
 
-class CrawlerLinksScopus:
+class CrawlerWorksScopus(CrawlerWorks):
     def __init__(self):
-        self.list_authors = get_list_authors()
-        list_name_authors = [author.id_name().lower() for author in self.list_authors]
-        self.set_name_authors = set(list_name_authors)
+        super().__init__(WorkTypes.SCOPUS)
         self.driver = webdriver.Chrome(SELENIUM_CHROME_DRIVER_PATH)
+
+    def get_list_authors(self):
+        return get_list_authors()
 
     @staticmethod
     def parse_bib_tex_file(path: str):
@@ -68,14 +69,14 @@ class CrawlerLinksScopus:
         STUPID_POP_UP_X_PATH = '//*[@id="_pendo-close-guide_"]'
         RADIO_BUTTON_X_PATH = '//*[@id="exportList"]/li[5]'
         EXPORT_BUTTON_X_PATH = '//*[@id="exportTrigger"]'
-        CrawlerLinksScopus.wait_and_click(driver, SELECT_BOX_X_PATH)
+        CrawlerWorksScopus.wait_and_click(driver, SELECT_BOX_X_PATH)
         try:
             if first_download:
-                CrawlerLinksScopus.wait_and_click(driver, STUPID_POP_UP_X_PATH)
+                CrawlerWorksScopus.wait_and_click(driver, STUPID_POP_UP_X_PATH)
         except:
             pass
-        CrawlerLinksScopus.wait_and_click(driver, RADIO_BUTTON_X_PATH)
-        CrawlerLinksScopus.wait_and_click(driver, EXPORT_BUTTON_X_PATH)
+        CrawlerWorksScopus.wait_and_click(driver, RADIO_BUTTON_X_PATH)
+        CrawlerWorksScopus.wait_and_click(driver, EXPORT_BUTTON_X_PATH)
 
     @staticmethod
     def get_num_citation_for_document(row):
@@ -102,8 +103,8 @@ class CrawlerLinksScopus:
     def get_num_citations_and_field_weight_links_and_journal_links(driver):
         SELECT_MENU_X_PATH = '//*[@id="resultsPerPage-button"]/span[1]'
         SELECT_OPTION_X_PATH = '//*[@id="resultsPerPage-menu"]/li[4]'
-        CrawlerLinksScopus.wait_and_click(driver, SELECT_MENU_X_PATH)
-        CrawlerLinksScopus.wait_and_click(driver, SELECT_OPTION_X_PATH)
+        CrawlerWorksScopus.wait_and_click(driver, SELECT_MENU_X_PATH)
+        CrawlerWorksScopus.wait_and_click(driver, SELECT_OPTION_X_PATH)
         time.sleep(5)
         data = driver.page_source
         soup = BeautifulSoup(data)
@@ -112,18 +113,18 @@ class CrawlerLinksScopus:
         field_weight_links = []
         journal_links = []
         for row in soup.find_all("tr", {"class": "searchArea"}):
-            cite = CrawlerLinksScopus.get_num_citation_for_document(row)
+            cite = CrawlerWorksScopus.get_num_citation_for_document(row)
             citations.append(cite)
-            field_weight_link = CrawlerLinksScopus.get_field_weight_link_for_document(row)
+            field_weight_link = CrawlerWorksScopus.get_field_weight_link_for_document(row)
             field_weight_links.append(field_weight_link)
-            journal_link = CrawlerLinksScopus.get_journal_link_for_document(row)
+            journal_link = CrawlerWorksScopus.get_journal_link_for_document(row)
             journal_links.append(journal_link)
         return citations, field_weight_links, journal_links
 
     @staticmethod
     def crawl_works_citations_and_field_weight_links_author(author: Author):
         download_dir = "{}\\{}_{}".format(DOWNLOAD_FILE_PATH, author.last_name, author.first_name)
-        driver = CrawlerLinksScopus.init_driver_for_works_by_author(download_dir)
+        driver = CrawlerWorksScopus.init_driver_for_works_by_author(download_dir)
         works = []
         citations_total = []
         field_weight_links_total = []
@@ -135,11 +136,11 @@ class CrawlerLinksScopus:
             path = path.strip()
             print(path)
             driver.get(path)
-            CrawlerLinksScopus.download_bibtex(driver, first_download)
+            CrawlerWorksScopus.download_bibtex(driver, first_download)
             first_download = False
 
             citations, field_weight_links, journal_links = \
-                CrawlerLinksScopus.get_num_citations_and_field_weight_links_and_journal_links(driver)
+                CrawlerWorksScopus.get_num_citations_and_field_weight_links_and_journal_links(driver)
             citations_total += citations
             field_weight_links_total += field_weight_links
             journal_links_total += journal_links
@@ -147,7 +148,7 @@ class CrawlerLinksScopus:
         # Latency of download
         time.sleep(.3)
         for file in os.listdir(download_dir):
-            works += CrawlerLinksScopus.parse_bib_tex_file(os.path.join(download_dir, file))
+            works += CrawlerWorksScopus.parse_bib_tex_file(os.path.join(download_dir, file))
         return works, citations_total, field_weight_links_total, journal_links_total
 
     def get_weight_index(self, document_link: str):
@@ -176,7 +177,6 @@ class CrawlerLinksScopus:
         sjr = ""
         snip = ""
         while not success:
-            #driver = webdriver.Chrome(SELENIUM_CHROME_DRIVER_PATH)
             self.driver.get(journal_link)
             time.sleep(2)
             soup = BeautifulSoup(self.driver.page_source)
@@ -190,13 +190,13 @@ class CrawlerLinksScopus:
 
         return cite_score, sjr, snip
 
-    def crawl_works(self, list_authors: list):
-        works_work_book = WorksWorkbook(is_wos=False)
+    def crawl_works(self, list_authors: list, work_book_type: WorkTypes):
+        works_work_book = WorksWorkbook(work_book_type)
 
         for author in list_authors:
             if author.link != "":
-                works, citations, field_weight_links, journal_links  = \
-                    CrawlerLinksScopus.crawl_works_citations_and_field_weight_links_author(author)
+                works, citations, field_weight_links, journal_links = \
+                    CrawlerWorksScopus.crawl_works_citations_and_field_weight_links_author(author)
                 print("Number of works {}".format(works.__len__()))
                 for work_id, work_bib in enumerate(works):
                     weight_index = self.get_weight_index(field_weight_links[work_id])
@@ -217,12 +217,7 @@ class CrawlerLinksScopus:
             else:
                 print("No works available")
         works_work_book.save()
-
-    def crawl_work_all_authors(self):
-        self.crawl_works(self.list_authors)
-
-    def craw_custom_authors(self, authors: list):
-        self.crawl_works(authors)
+        crawler.convert_authors_to_real_names(work_book_type)
 
     def find_author(self, last_name: str, first_name_initial: str):
         for author_it in self.list_authors:
@@ -230,8 +225,9 @@ class CrawlerLinksScopus:
                (first_name_initial.lower() == author_it.first_name[0].lower()) and (author_it.link != ""):
                 return author_it
 
-    def convert_authors_to_real_names(self):
-        work_book_works = openpyxl.load_workbook(filename=WORKS_SCOPUS_FILE_NAME)
+    def convert_authors_to_real_names(self, work_book_type: WorkTypes):
+        work_book_name = WORKS_FILE_NAME[work_book_type]
+        work_book_works = openpyxl.load_workbook(filename=work_book_name)
         sheet = work_book_works[WORKS_SHEET_NAME]
         for row in range(2, sheet.max_row + 1):
             authors = sheet.cell(row, Work.COLUMN_IDX_AUTHORS).value.lower()
@@ -255,29 +251,17 @@ class CrawlerLinksScopus:
                 authors_new += author_new
 
             sheet.cell(row, Work.COLUMN_IDX_AUTHORS).value = authors_new
-        work_book_works.save(WORKS_SCOPUS_FILE_NAME)
-
-    def generate_graph_known_authors(self):
-        work_book_works = openpyxl.load_workbook(filename=WORKS_SCOPUS_FILE_NAME)
-        sheet = work_book_works[WORKS_SHEET_NAME]
-        work_book_edges = GraphEdgesWorkbook(is_wos=False)
-        for row in range(2, sheet.max_row + 1):
-            author1 = sheet.cell(row, Work.COLUMN_IDX_AUTHOR).value.lower()
-            authors = sheet.cell(row, Work.COLUMN_IDX_AUTHORS).value.lower()
-            for author2 in authors.split(","):
-                if author2 in self.set_name_authors:
-                    edge = GraphEdge(author1, author2)
-                    work_book_edges.save_graph_edge(edge)
-        work_book_edges.save()
+        work_book_works.save(work_book_name)
 
     def generate_graph_authors(self):
         pass
 
 
 if __name__ == "__main__":
-    crawler = CrawlerLinksScopus()
-    crawler.craw_custom_authors([Author(first_name="Sana", last_name="Stojanovic", department=MATF_DEPARTMENT,
-                                       faculty=MATF_FACULTY_NAME,
+    crawler = CrawlerWorksScopus()
+    '''
+    crawler.crawl_custom_authors([Author(first_name="Sana", last_name="Stojanovic", department=MATF_DEPARTMENT,
+                                       faculty=MATF_FACULTY_NAME, middle_name="N",
                                        link=r"https://www.scopus.com/authid/detail.uri?authorId=54401813300")])
-    #crawler.convert_authors_to_real_names()
-    #crawler.generate_graph_known_authors()
+'''
+    crawler.generate_graph_known_authors_custom()

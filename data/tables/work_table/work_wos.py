@@ -34,9 +34,8 @@ class WorkWos(Work):
     def impact_factor5(self, value):
         self._impact_factor5 = value
 
-    @staticmethod
-    def write_headers_to_sheet(sheet: worksheet):
-        Work.write_headers_to_sheet(sheet)
+    def write_headers_to_sheet(self, sheet: worksheet):
+        super().write_headers_to_sheet(sheet)
         sheet.cell(1, WorkWos.COLUMN_IDX_IMPACT_FACTOR).value = WorkWos.COLUMN_IMPACT_FACTOR
         sheet.cell(1, WorkWos.COLUMN_IDX_IMPACT_5FACTOR).value = WorkWos.COLUMN_IMPACT_FACTOR5
 

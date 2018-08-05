@@ -1,15 +1,18 @@
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 
+from crawler.authors.crawler_matf import MATF_DEPARTMENT, MATF_FACULTY_NAME
+from crawler.works.crawl_works import CrawlerWorks
 from data.tables.work_table.work_wos import WorkWos
 from data.workbooks.graph_edges_workbook import GraphEdgesWorkbook
-from data.workbooks.works_workbook import WorksWorkbook, WORKS_WOS_FILE_NAME, WORKS_SHEET_NAME
+from data.workbooks.works_workbook import WorksWorkbook, WORKS_WOS_FILE_NAME, WORKS_SHEET_NAME, \
+    WorkTypes
 from utilities.global_setup import PROXY
 from bibtexparser.bparser import BibTexParser
 import requests
 import re
 import openpyxl
-from crawler.web_of_science.crawl_names import get_list_authors
+from crawler.works.web_of_science.crawl_names import get_list_authors
 from data.tables.author import Author
 from data.tables.work_table.work import Work
 from data.tables.graph_edge import GraphEdge
@@ -25,15 +28,16 @@ NUM_WORKS_PER_PAGE = 10
 LAST_YEAR = 2017
 
 
-class CrawlerLinksWos:
+class CrawlerWorksWos(CrawlerWorks):
     idx_gen = 0
 
     def __init__(self):
-        self.list_authors = get_list_authors()
-        list_name_authors = [author.id_name().lower() for author in self.list_authors]
-        self.set_name_authors = set(list_name_authors)
+        super().__init__(WorkTypes.WOS)
         self.cur_row = 1
         self.user_agent = UserAgent()
+
+    def get_list_authors(self):
+        return get_list_authors()
 
     @staticmethod
     def format_middle_name(middle_name: str):
@@ -47,13 +51,13 @@ class CrawlerLinksWos:
 
     @staticmethod
     def crawl_works_author(first_name: str, last_name: str, middle_name: str):
-        path = KOBSON_WOS_BIBTEX.format(last_name, first_name, CrawlerLinksWos.format_middle_name(middle_name))
+        path = KOBSON_WOS_BIBTEX.format(last_name, first_name, CrawlerWorksWos.format_middle_name(middle_name))
         r = requests.get(path, proxies=PROXY)
         r.encoding = "utf-8"
         data = r.text
-        data_structured = re.sub("(" + REGEX_AUTHOR_STRING + ")", r"{},\r\n\1".format(CrawlerLinksWos.idx_gen), data)
-        CrawlerLinksWos.idx_gen += 1
-        return path, CrawlerLinksWos.parse_bib_tex(data_structured)
+        data_structured = re.sub("(" + REGEX_AUTHOR_STRING + ")", r"{},\r\n\1".format(CrawlerWorksWos.idx_gen), data)
+        CrawlerWorksWos.idx_gen += 1
+        return path, CrawlerWorksWos.parse_bib_tex(data_structured)
 
     def get_random_header(self):
         return {"User-Agent": self.user_agent.random}
@@ -63,7 +67,7 @@ class CrawlerLinksWos:
         journal_links = []
         num_pages = -(-number_works // NUM_WORKS_PER_PAGE)
         for offset in range(0, num_pages):
-            path = KOBSON_WOS.format(last_name, first_name, CrawlerLinksWos.format_middle_name(middle_name), offset)
+            path = KOBSON_WOS.format(last_name, first_name, CrawlerWorksWos.format_middle_name(middle_name), offset)
             links_to_crawl = NUM_WORKS_PER_PAGE if (offset < (num_pages - 1)) \
                                                 else number_works - (num_pages - 1) * NUM_WORKS_PER_PAGE
             print(links_to_crawl)
@@ -118,7 +122,7 @@ class CrawlerLinksWos:
                 if skip_impact_factor:
                     skip_impact_factor = False
                     continue
-                offset = CrawlerLinksWos.find_offset_year(table, year)
+                offset = CrawlerWorksWos.find_offset_year(table, year)
                 if offset is None:
                     return None
                 for row in table.find_all("tr"):
@@ -134,19 +138,19 @@ class CrawlerLinksWos:
         r.encoding = "utf-8"
         data = r.text
         soup = BeautifulSoup(data)
-        impact_factor_2017 = CrawlerLinksWos.get_impact_factor(soup, False, year)
+        impact_factor_2017 = CrawlerWorksWos.get_impact_factor(soup, False, year)
         impact_factor_2017 = "" if impact_factor_2017 is None else impact_factor_2017
-        impact_factor5_2017 = CrawlerLinksWos.get_impact_factor(soup, True, year)
+        impact_factor5_2017 = CrawlerWorksWos.get_impact_factor(soup, True, year)
         impact_factor5_2017 = "" if impact_factor5_2017 is None else impact_factor5_2017
         return impact_factor_2017, impact_factor5_2017
 
-    def crawl_works(self):
-        works_work_book = WorksWorkbook(is_wos=True)
+    def crawl_works(self, list_authors: list, work_book_type: WorkTypes):
+        works_work_book = WorksWorkbook(work_book_type)
 
-        for author in self.list_authors:
+        for author in list_authors:
             print("{} {} {}".format(author.first_name, author.last_name, author.middle_name))
             if author.middle_name != Author.MIDDLE_NAME_NOT_FOUND:
-                path, works = CrawlerLinksWos.crawl_works_author(author.first_name,
+                path, works = CrawlerWorksWos.crawl_works_author(author.first_name,
                                                                  author.last_name.replace(" ", "-"),
                                                                  author.middle_name)
                 journal_links, wos_links = self.crawl_wos_and_journal_links(
@@ -169,25 +173,11 @@ class CrawlerLinksWos:
             else:
                 print("No works available")
         works_work_book.save()
-
-    def generate_graph_known_authors(self):
-        work_book_works = openpyxl.load_workbook(filename=WORKS_WOS_FILE_NAME)
-        sheet = work_book_works[WORKS_SHEET_NAME]
-        work_book_edges = GraphEdgesWorkbook(is_wos=True)
-        for row in range(2, sheet.max_row + 1):
-            author1 = sheet.cell(row, Work.COLUMN_IDX_AUTHOR).value.lower()
-            authors = sheet.cell(row, Work.COLUMN_IDX_AUTHORS).value.lower()
-            for author2 in authors.split(","):
-                if author2 in self.set_name_authors:
-                    edge = GraphEdge(author1, author2)
-                    work_book_edges.save_graph_edge(edge)
-        work_book_edges.save()
-
-    def generate_graph_authors(self):
-        pass
-
+        
 
 if __name__ == "__main__":
-    crawler = CrawlerLinksWos()
-    crawler.crawl_works()
-    #crawler.generate_graph_known_authors()
+    crawler = CrawlerWorksWos()
+    crawler.crawl_custom_authors([Author(first_name="Marko", last_name="Misic", department=MATF_DEPARTMENT,
+                                       faculty=MATF_FACULTY_NAME, middle_name="J",
+                                       link=r"https://www.scopus.com/authid/detail.uri?authorId=54401813300")])
+    crawler.generate_graph_known_authors_custom()

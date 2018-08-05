@@ -56,9 +56,8 @@ class WorkScopus(Work):
     def snip(self, value):
         self._snip = value
 
-    @staticmethod
-    def write_headers_to_sheet(sheet: worksheet):
-        Work.write_headers_to_sheet(sheet)
+    def write_headers_to_sheet(self, sheet: worksheet):
+        super().write_headers_to_sheet(sheet)
         sheet.cell(1, WorkScopus.COLUMN_IDX_CITE_SCORE).value = WorkScopus.COLUMN_CITE_SCORE
         sheet.cell(1, WorkScopus.COLUMN_IDX_WEIGHT_INDEX).value = WorkScopus.COLUMN_WEIGHT_INDEX
         sheet.cell(1, WorkScopus.COLUMN_IDX_SJR).value = WorkScopus.COLUMN_SJR

@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import openpyxl
-from crawler.web_of_science.crawl_names import  AUTHORS_WOS_FILE_NAME
+from crawler.works.web_of_science.crawl_names import AUTHORS_WOS_FILE_NAME
 from data.tables.author import Author
 from utilities.global_setup import PROXY
 

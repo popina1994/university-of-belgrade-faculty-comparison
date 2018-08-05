@@ -106,8 +106,7 @@ class Work:
     def faculty(self, value):
         self._faculty = value
 
-    @staticmethod
-    def write_headers_to_sheet(sheet: worksheet):
+    def write_headers_to_sheet(self, sheet: worksheet):
         sheet.cell(1, Work.COLUMN_IDX_AUTHOR).value = Work.COLUMN_AUTHOR
         sheet.cell(1, Work.COLUMN_IDX_TITLE).value = Work.COLUMN_TITLE
         sheet.cell(1, Work.COLUMN_IDX_YEAR).value = Work.COLUMN_YEAR
@@ -115,8 +114,6 @@ class Work:
         sheet.cell(1, Work.COLUMN_IDX_NUM_CITATIONS).value = Work.COLUMN_NUM_CITATIONS
         sheet.cell(1, Work.COLUMN_IDX_DOC_TYPE).value = Work.COLUMN_DOC_TYPE
         sheet.cell(1, Work.COLUMN_IDX_DOC_NAME).value = Work.COLUMN_DOC_NAME
-        #sheet.cell(1, Work.COLUMN_IDX_IMPACT_FACTOR).value = Work.COLUMN_IMPACT_FACTOR
-        #sheet.cell(1, Work.COLUMN_IDX_IMPACT_5FACTOR).value = Work.COLUMN_IMPACT_FACTOR5
         sheet.cell(1, Work.COLUMN_IDX_DEPARTMENT).value = Work.COLUMN_DEPARTMENT
         sheet.cell(1, Work.COLUMN_IDX_FACULTY).value = Work.COLUMN_FACULTY
 
@@ -128,8 +125,6 @@ class Work:
         sheet.cell(row, Work.COLUMN_IDX_NUM_CITATIONS).value = self.num_citations
         sheet.cell(row, Work.COLUMN_IDX_DOC_TYPE).value = self.doc_type
         sheet.cell(row, Work.COLUMN_IDX_DOC_NAME).value = self.document_name
-        #sheet.cell(row, Work.COLUMN_IDX_IMPACT_FACTOR).value = self.impact_factor
-        #sheet.cell(row, Work.COLUMN_IDX_IMPACT_5FACTOR).value = self.impact_factor5
         sheet.cell(row, Work.COLUMN_IDX_DEPARTMENT).value = self.department
         sheet.cell(row, Work.COLUMN_IDX_FACULTY).value = self.faculty
 
