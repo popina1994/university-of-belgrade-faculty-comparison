@@ -3,11 +3,12 @@ import shutil
 import time
 
 from bs4 import BeautifulSoup
-from fake_useragent import UserAgent
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
+from crawler.authors.crawler_matf import MATF_DEPARTMENT, MATF_FACULTY_NAME
+from data.tables.work_table.work_scopus import WorkScopus
 from data.workbooks.graph_edges_workbook import GraphEdgesWorkbook
 from data.workbooks.works_workbook import WorksWorkbook, WORKS_SHEET_NAME, WORKS_SCOPUS_FILE_NAME
 from language.language_converter import CyrillicLatin
@@ -15,9 +16,9 @@ from utilities.global_setup import SELENIUM_CHROME_DRIVER_PATH, DATA_PATH
 from bibtexparser.bparser import BibTexParser
 import openpyxl
 from crawler.scopus.crawl_links import get_list_authors
-from data.author import Author
-from data.work import Work
-from data.graph_edge import GraphEdge
+from data.tables.author import Author
+from data.tables.work_table.work import Work
+from data.tables.graph_edge import GraphEdge
 from selenium import webdriver
 from bibtexparser.customization import convert_to_unicode
 
@@ -149,17 +150,15 @@ class CrawlerLinksScopus:
             works += CrawlerLinksScopus.parse_bib_tex_file(os.path.join(download_dir, file))
         return works, citations_total, field_weight_links_total, journal_links_total
 
-    @staticmethod
-    def get_weight_index(document_link: str):
+    def get_weight_index(self, document_link: str):
         if document_link is "":
             return ""
         success = False
         field_weighted_citation_impact = ""
         while not success:
-            driver = webdriver.Chrome(SELENIUM_CHROME_DRIVER_PATH)
-            driver.get(document_link)
+            self.driver.get(document_link)
             time.sleep(2)
-            soup = BeautifulSoup(driver.page_source)
+            soup = BeautifulSoup(self.driver.page_source)
             try:
                 field_weighted_citation_impact = soup.find_all("div", {"class": "metricCount"})[1].text
                 success = True
@@ -191,33 +190,39 @@ class CrawlerLinksScopus:
 
         return cite_score, sjr, snip
 
-    def crawl_works(self):
+    def crawl_works(self, list_authors: list):
         works_work_book = WorksWorkbook(is_wos=False)
 
-        for author in self.list_authors:
+        for author in list_authors:
             if author.link != "":
                 works, citations, field_weight_links, journal_links  = \
                     CrawlerLinksScopus.crawl_works_citations_and_field_weight_links_author(author)
                 print("Number of works {}".format(works.__len__()))
                 for work_id, work_bib in enumerate(works):
+                    weight_index = self.get_weight_index(field_weight_links[work_id])
+                    cite_score, sjr, snip = self.get_journal_factors(journal_links[work_id])
+                    print("cf{} sjr{} snip{} num_cit {}, weight_index {}".
+                          format(cite_score, sjr, snip, citations[work_id], weight_index))
 
-                    #impact_factor = CrawlerLinksScopus.get_weight_index(field_weight_links[work_id])
-                    cite_factor, sjr, snip = self.get_journal_factors(journal_links[work_id])
-
-                    print("cf{} sjr{} snip{} num_cit {}".format(cite_factor, sjr, snip, citations[work_id]))
-
-                    work = Work(title=work_bib["title"], authors=work_bib["author"].replace("-", " "),
-                                year=work_bib["year"], doc_type=work_bib['document_type'],
-                                author="{} {} {}".format(author.last_name, author.first_name, author.middle_name).strip(),
-                                num_citations=snip,
-                                document_name=work_bib.get('journal', ""),
-                                impact_factor=cite_factor, impact_factor5=sjr,
-                                department=author.department, faculty=author.faculty)
+                    work = WorkScopus(title=work_bib["title"], authors=work_bib["author"].replace("-", " "),
+                                      year=work_bib["year"], doc_type=work_bib['document_type'],
+                                      author="{} {} {}".format(author.last_name, author.first_name,
+                                      author.middle_name).strip(),
+                                      num_citations=citations[work_id], weight_index=weight_index,
+                                      document_name=work_bib.get('journal', ""),
+                                      cite_score=cite_score, sjr=sjr, snip=snip,
+                                      department=author.department, faculty=author.faculty)
                     works_work_book.save_work(work)
                     print(work_bib["title"])
             else:
                 print("No works available")
         works_work_book.save()
+
+    def crawl_work_all_authors(self):
+        self.crawl_works(self.list_authors)
+
+    def craw_custom_authors(self, authors: list):
+        self.crawl_works(authors)
 
     def find_author(self, last_name: str, first_name_initial: str):
         for author_it in self.list_authors:
@@ -271,5 +276,8 @@ class CrawlerLinksScopus:
 
 if __name__ == "__main__":
     crawler = CrawlerLinksScopus()
+    crawler.craw_custom_authors([Author(first_name="Sana", last_name="Stojanovic", department=MATF_DEPARTMENT,
+                                       faculty=MATF_FACULTY_NAME,
+                                       link=r"https://www.scopus.com/authid/detail.uri?authorId=54401813300")])
     #crawler.convert_authors_to_real_names()
-    crawler.generate_graph_known_authors()
+    #crawler.generate_graph_known_authors()

@@ -1,5 +1,5 @@
 from openpyxl import Workbook
-from data.author import Author
+from data.tables.author import Author
 from utilities.global_setup import DATA_PATH
 AUTHORS_FILE_NAME = DATA_PATH + r"\People\authors.xlsx"
 

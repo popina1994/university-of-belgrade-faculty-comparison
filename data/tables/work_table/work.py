@@ -3,8 +3,7 @@ from openpyxl.worksheet import worksheet
 
 class Work:
     def __init__(self, title: str, year: int, authors: str, doc_type: str, author: str = "", num_citations: int=0,
-                 document_name: str="", impact_factor: str="", impact_factor5: str="",
-                 department: str="", faculty: str=""):
+                 document_name: str="", department: str="", faculty: str=""):
         self._author = author
         self._title = title
         self._year = year
@@ -12,8 +11,6 @@ class Work:
         self._doc_type = doc_type
         self._num_citations = num_citations
         self._document_name = document_name
-        self._impact_factor = impact_factor
-        self._impact_factor5 = impact_factor5
         self._department = department
         self._faculty = faculty
 
@@ -23,8 +20,6 @@ class Work:
     COLUMN_AUTHORS= "Autori"
     COLUMN_NUM_CITATIONS = "Broj citiranja"
     COLUMN_DOC_TYPE = "Tip rada"
-    COLUMN_IMPACT_FACTOR = "Impact factor 2017"
-    COLUMN_IMPACT_FACTOR5 = "Impact factor 5 godina 2017"
     COLUMN_DEPARTMENT = "Katedra"
     COLUMN_FACULTY = "Fakultet"
     COLUMN_DOC_NAME = "Ime dokumenta"
@@ -35,8 +30,6 @@ class Work:
     COLUMN_IDX_AUTHORS = 4
     COLUMN_IDX_NUM_CITATIONS = 5
     COLUMN_IDX_DOC_TYPE = 6
-    COLUMN_IDX_IMPACT_FACTOR = 7
-    COLUMN_IDX_IMPACT_5FACTOR = 8
     COLUMN_IDX_DEPARTMENT = 9
     COLUMN_IDX_FACULTY = 10
     COLUMN_IDX_DOC_NAME = 11
@@ -98,22 +91,6 @@ class Work:
         self._document_name = value
 
     @property
-    def impact_factor(self):
-        return self._impact_factor
-
-    @impact_factor.setter
-    def impact_factor(self, value):
-        self._impact_factor = value
-
-    @property
-    def impact_factor5(self):
-        return self._impact_factor5
-
-    @impact_factor5.setter
-    def impact_factor5(self, value):
-        self._impact_factor5 = value
-
-    @property
     def department(self):
         return self._department
 
@@ -138,8 +115,8 @@ class Work:
         sheet.cell(1, Work.COLUMN_IDX_NUM_CITATIONS).value = Work.COLUMN_NUM_CITATIONS
         sheet.cell(1, Work.COLUMN_IDX_DOC_TYPE).value = Work.COLUMN_DOC_TYPE
         sheet.cell(1, Work.COLUMN_IDX_DOC_NAME).value = Work.COLUMN_DOC_NAME
-        sheet.cell(1, Work.COLUMN_IDX_IMPACT_FACTOR).value = Work.COLUMN_IMPACT_FACTOR
-        sheet.cell(1, Work.COLUMN_IDX_IMPACT_5FACTOR).value = Work.COLUMN_IMPACT_FACTOR5
+        #sheet.cell(1, Work.COLUMN_IDX_IMPACT_FACTOR).value = Work.COLUMN_IMPACT_FACTOR
+        #sheet.cell(1, Work.COLUMN_IDX_IMPACT_5FACTOR).value = Work.COLUMN_IMPACT_FACTOR5
         sheet.cell(1, Work.COLUMN_IDX_DEPARTMENT).value = Work.COLUMN_DEPARTMENT
         sheet.cell(1, Work.COLUMN_IDX_FACULTY).value = Work.COLUMN_FACULTY
 
@@ -151,7 +128,8 @@ class Work:
         sheet.cell(row, Work.COLUMN_IDX_NUM_CITATIONS).value = self.num_citations
         sheet.cell(row, Work.COLUMN_IDX_DOC_TYPE).value = self.doc_type
         sheet.cell(row, Work.COLUMN_IDX_DOC_NAME).value = self.document_name
-        sheet.cell(row, Work.COLUMN_IDX_IMPACT_FACTOR).value = self.impact_factor
-        sheet.cell(row, Work.COLUMN_IDX_IMPACT_5FACTOR).value = self.impact_factor5
+        #sheet.cell(row, Work.COLUMN_IDX_IMPACT_FACTOR).value = self.impact_factor
+        #sheet.cell(row, Work.COLUMN_IDX_IMPACT_5FACTOR).value = self.impact_factor5
         sheet.cell(row, Work.COLUMN_IDX_DEPARTMENT).value = self.department
         sheet.cell(row, Work.COLUMN_IDX_FACULTY).value = self.faculty
+

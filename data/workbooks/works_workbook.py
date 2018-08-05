@@ -1,5 +1,5 @@
 from openpyxl import Workbook
-from data.work import Work
+from data.tables.work_table.work import Work
 from utilities.global_setup import DATA_PATH
 WORKS_WOS_FILE_NAME = DATA_PATH + r"\Work\works_wos.xlsx"
 WORKS_SCOPUS_FILE_NAME = DATA_PATH + r"\Work\works_scopus.xlsx"

@@ -2,8 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import openpyxl
 from crawler.web_of_science.crawl_names import  AUTHORS_WOS_FILE_NAME
-from data.author import Author
-from language.language_converter import CyrillicLatin
+from data.tables.author import Author
 from utilities.global_setup import PROXY
 
 SCOPUS_PATH = "https://www.scopus.com/results/authorNamesList.uri?sort=count-f&src=al&sid=8a5f928c9f2a3530c144238b9d2f5e02&sot=al&sdt=al&sl=74&s=AUTHLASTNAME%28{}%29+AND+AUTHFIRST%28{}%29&st1={}&st2={}&orcidId=&selectionPageSearch=anl&reselectAuthor=false&activeFlag=true&showDocument=false&resultsPerPage=20&offset=1&jtp=false&currentPage=1&previousSelectionCount=0&tooManySelections=false&previousResultCount=0&authSubject=LFSC&authSubject=HLSC&authSubject=PHSC&authSubject=SOSC&exactAuthorSearch=false&showFullList=false&authorPreferredName=&origin=searchauthorfreelookup&affiliationId=&txGid=855cc953ff2e66c64f5d95ddb748ce36"

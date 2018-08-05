@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 
+from data.tables.work_table.work_wos import WorkWos
 from data.workbooks.graph_edges_workbook import GraphEdgesWorkbook
 from data.workbooks.works_workbook import WorksWorkbook, WORKS_WOS_FILE_NAME, WORKS_SHEET_NAME
 from utilities.global_setup import PROXY
@@ -9,10 +10,9 @@ import requests
 import re
 import openpyxl
 from crawler.web_of_science.crawl_names import get_list_authors
-from data.author import Author
-from data.work import Work
-from data.graph_edge import GraphEdge
-from math import ceil
+from data.tables.author import Author
+from data.tables.work_table.work import Work
+from data.tables.graph_edge import GraphEdge
 
 REGEX_AUTHOR_STRING = "author\s*=\s*\{[\w ,-.()]+\},"
 KOBSON_WOS_BIBTEX = "http://kobson.nb.rs/aspx/wos/export.aspx?autor={}%20{}{}&samoar=&format=BibTeX"
@@ -157,7 +157,7 @@ class CrawlerLinksWos:
                     impact_factor, impact_factor5 = self.get_impact_factors(journal_links[work_id], LAST_YEAR)
                     num_citations = self.get_num_citations(wos_links[work_id])
                     print("if{} if5{} num_cit {}".format(impact_factor, impact_factor5, num_citations))
-                    work = Work(title=work_bib["title"], authors=work_bib["author"].replace("-", " "),
+                    work = WorkWos(title=work_bib["title"], authors=work_bib["author"].replace("-", " "),
                                 year=work_bib["year"], doc_type=work_bib['document_type'],
                                 author="{} {} {}".format(author.last_name, author.first_name, author.middle_name).strip(),
                                 num_citations=num_citations,
@@ -189,5 +189,5 @@ class CrawlerLinksWos:
 
 if __name__ == "__main__":
     crawler = CrawlerLinksWos()
-    #crawler.crawl_works()
-    crawler.generate_graph_known_authors()
+    crawler.crawl_works()
+    #crawler.generate_graph_known_authors()

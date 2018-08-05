@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from utilities.global_setup import PROXY, SELENIUM_CHROME_DRIVER_PATH
-from data.author import Author
+from data.tables.author import Author
 import requests
 
 TITLE_WORDS = ["dr", "mr", "ms", "doc.", "prof.", "as."]

@@ -1,6 +1,5 @@
 from openpyxl import Workbook
-from data.author import Author
-from data.graph_edge import GraphEdge
+from data.tables.graph_edge import GraphEdge
 from utilities.global_setup import DATA_PATH
 GRAPH_EDGES_WOS_FILE_NAME = DATA_PATH + r"\work\graph_edges_wos.xlsx"
 GRAPH_EDGES_SCOPUS_FILE_NAME = DATA_PATH + r"\work\graph_edges_scopus.xlsx"

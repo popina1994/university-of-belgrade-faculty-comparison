@@ -4,7 +4,7 @@ import openpyxl
 from openpyxl import Workbook
 
 from data.workbooks.authors_workbook import AUTHORS_FILE_NAME
-from data.author import Author
+from data.tables.author import Author
 from utilities.global_setup import DATA_PATH
 
 KOBSON_PATH = "http://kobson.nb.rs/nauka_u_srbiji.133.html?prezime={}+{}%25"
