@@ -220,9 +220,10 @@ class CrawlerWorksScopus(CrawlerWorks):
         crawler.convert_authors_to_real_names(work_book_type)
 
     def find_author(self, last_name: str, first_name_initial: str):
+        initial_len = first_name_initial.__len__()
         for author_it in self.list_authors:
             if (author_it.last_name.lower() == last_name) and \
-               (first_name_initial.lower() == author_it.first_name[0].lower()) and (author_it.link != ""):
+               (first_name_initial.lower() == author_it.first_name[0:initial_len].lower()) and (author_it.link != ""):
                 return author_it
 
     def convert_authors_to_real_names(self, work_book_type: WorkTypes):
@@ -238,8 +239,12 @@ class CrawlerWorksScopus(CrawlerWorks):
                 try:
                     last_name = CyrillicLatin.convert_serb_latin_to_latin(author_sub_names[0].strip())
                     first_name_initial_exist = author_sub_names.__len__() > 1
-                    first_name_initial = "" if not first_name_initial_exist  \
-                                        else CyrillicLatin.convert_serb_latin_to_latin(author_sub_names[1].strip()[0])
+                    if not first_name_initial_exist:
+                        print("ROw{}".format(row))
+                        first_name_initial = ""
+                    else:
+                        first_name_initial = author_sub_names[1].strip().split(".")[0].strip()
+                        first_name_initial = CyrillicLatin.convert_serb_latin_to_latin(first_name_initial)
                     author_search = self.find_author(last_name, first_name_initial)
                     author_new = author_search.id_name() if author_search is not None \
                         else last_name + " " + first_name_initial + " DOT"
@@ -247,7 +252,7 @@ class CrawlerWorksScopus(CrawlerWorks):
                         authors_new += ","
                     first = False
                 except:
-                    print("Test")
+                    print("Row{}".format(row))
                 authors_new += author_new
 
             sheet.cell(row, Work.COLUMN_IDX_AUTHORS).value = authors_new
@@ -259,9 +264,10 @@ class CrawlerWorksScopus(CrawlerWorks):
 
 if __name__ == "__main__":
     crawler = CrawlerWorksScopus()
-    '''
+    
     crawler.crawl_custom_authors([Author(first_name="Sana", last_name="Stojanovic", department=MATF_DEPARTMENT,
                                        faculty=MATF_FACULTY_NAME, middle_name="N",
                                        link=r"https://www.scopus.com/authid/detail.uri?authorId=54401813300")])
-'''
-    crawler.generate_graph_known_authors_custom()
+
+    #crawler.convert_authors_to_real_names(WorkTypes.SCOPUS)
+    #crawler.generate_graph_all_known_authors()

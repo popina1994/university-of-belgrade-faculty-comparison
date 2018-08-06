@@ -1,21 +1,15 @@
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
-
 from crawler.authors.crawler_matf import MATF_DEPARTMENT, MATF_FACULTY_NAME
 from crawler.works.crawl_works import CrawlerWorks
 from data.tables.work_table.work_wos import WorkWos
-from data.workbooks.graph_edges_workbook import GraphEdgesWorkbook
-from data.workbooks.works_workbook import WorksWorkbook, WORKS_WOS_FILE_NAME, WORKS_SHEET_NAME, \
-    WorkTypes
+from data.workbooks.works_workbook import WorksWorkbook, WorkTypes
 from utilities.global_setup import PROXY
 from bibtexparser.bparser import BibTexParser
 import requests
 import re
-import openpyxl
 from crawler.works.web_of_science.crawl_names import get_list_authors
 from data.tables.author import Author
-from data.tables.work_table.work import Work
-from data.tables.graph_edge import GraphEdge
 
 REGEX_AUTHOR_STRING = "author\s*=\s*\{[\w ,-.()]+\},"
 KOBSON_WOS_BIBTEX = "http://kobson.nb.rs/aspx/wos/export.aspx?autor={}%20{}{}&samoar=&format=BibTeX"
@@ -173,11 +167,13 @@ class CrawlerWorksWos(CrawlerWorks):
             else:
                 print("No works available")
         works_work_book.save()
-        
+
 
 if __name__ == "__main__":
     crawler = CrawlerWorksWos()
-    crawler.crawl_custom_authors([Author(first_name="Marko", last_name="Misic", department=MATF_DEPARTMENT,
-                                       faculty=MATF_FACULTY_NAME, middle_name="J",
+    '''
+    crawler.crawl_custom_authors([Author(first_name="Sana", last_name="Stojanovic", department=MATF_DEPARTMENT,
+                                       faculty=MATF_FACULTY_NAME, middle_name="N",
                                        link=r"https://www.scopus.com/authid/detail.uri?authorId=54401813300")])
-    crawler.generate_graph_known_authors_custom()
+    '''
+    crawler.generate_graph_all_known_authors()

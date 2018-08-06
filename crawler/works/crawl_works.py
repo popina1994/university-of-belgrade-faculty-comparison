@@ -5,7 +5,7 @@ import openpyxl
 from data.tables.graph_edge import GraphEdge
 from data.tables.work_table.work import Work
 from data.workbooks.graph_edges_workbook import GraphEdgesWorkbook
-from data.workbooks.works_workbook import WORKS_TEMP_WORK_BOOK, WORKS_FILE_NAME, WORKS_SHEET_NAME, WorkTypes
+from data.workbooks.works_workbook import WORKS_FILE_NAME, WORKS_SHEET_NAME, WorkTypes
 
 
 class CrawlerWorks(ABC):
@@ -17,10 +17,6 @@ class CrawlerWorks(ABC):
 
     @abstractmethod
     def get_list_authors(self):
-        pass
-
-    @abstractmethod
-    def crawl_works(self, list_authors: list, work_book_type):
         pass
 
     @abstractmethod
@@ -46,7 +42,7 @@ class CrawlerWorks(ABC):
                     work_book_edges.save_graph_edge(edge)
         work_book_edges.save()
 
-    def generate_graph_all_known_authors(self, work_book_type: WorkTypes):
+    def generate_graph_all_known_authors(self):
         self.generate_graph_known_authors(self.work_book_type)
 
     def generate_graph_known_authors_custom(self):

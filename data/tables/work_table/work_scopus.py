@@ -11,8 +11,8 @@ class WorkScopus(Work):
 
     COLUMN_IDX_WEIGHT_INDEX = 7
     COLUMN_IDX_CITE_SCORE = 8
-    COLUMN_IDX_SJR = 11
-    COLUMN_IDX_SNIP = 12
+    COLUMN_IDX_SJR = 12
+    COLUMN_IDX_SNIP = 13
 
     def __init__(self, title: str, year: int, authors: str, doc_type: str, author: str = "", num_citations: int=0,
                  document_name: str="", department: str="", faculty: str="", weight_index="", cite_score="",
