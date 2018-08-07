@@ -1,14 +1,15 @@
+import openpyxl
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 from crawler.authors.crawler_matf import MATF_DEPARTMENT, MATF_FACULTY_NAME
 from crawler.works.crawl_works import CrawlerWorks
+from crawler.works.web_of_science.crawl_names import AUTHORS_WOS_FILE_NAME
 from data.tables.work_table.work_wos import WorkWos
 from data.workbooks.works_workbook import WorksWorkbook, WorkTypes
-from utilities.global_setup import PROXY
+from utilities.global_setup import PROXY, DATA_PATH
 from bibtexparser.bparser import BibTexParser
 import requests
 import re
-from crawler.works.web_of_science.crawl_names import get_list_authors
 from data.tables.author import Author
 
 REGEX_AUTHOR_STRING = "author\s*=\s*\{[\w ,-.()]+\},"
@@ -31,7 +32,21 @@ class CrawlerWorksWos(CrawlerWorks):
         self.user_agent = UserAgent()
 
     def get_list_authors(self):
-        return get_list_authors()
+        work_book_author = openpyxl.load_workbook(filename=AUTHORS_WOS_FILE_NAME)
+        list_authors = []
+        for sheet in work_book_author.worksheets:
+            for row in range(2, sheet.max_row + 1):
+                first_name = sheet.cell(row, Author.COLUMN_IDX_FIRST_NAME).value
+                last_name = sheet.cell(row, Author.COLUMN_IDX_LAST_NAME).value
+                middle_names = sheet.cell(row, Author.COLUMN_IDX_MIDDLE_NAME).value
+                middle_names = "" if middle_names is None else middle_names
+                department = sheet.cell(row, Author.COLUMN_IDX_DEPARTMENT_NAME).value
+                faculty = sheet.cell(row, Author.COLUMN_IDX_FACULTY_NAME).value
+                middle_names_sub = middle_names.split(",")
+                for middle_name in middle_names_sub:
+                    author = Author(first_name, last_name, department, faculty, middle_name)
+                    list_authors.append(author)
+        return list_authors
 
     @staticmethod
     def format_middle_name(middle_name: str):

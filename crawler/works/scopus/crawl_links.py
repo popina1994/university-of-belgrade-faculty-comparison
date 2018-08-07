@@ -45,24 +45,7 @@ def update_links():
     #work_book.save(AUTHORS_SCOPUS_FILE_NAME)
 
 
-def get_list_authors():
-    work_book_author = openpyxl.load_workbook(filename=AUTHORS_SCOPUS_FILE_NAME)
-    list_authors = []
-    for sheet in work_book_author.worksheets:
-        for row in range(2, sheet.max_row + 1):
-            first_name = sheet.cell(row, Author.COLUMN_IDX_FIRST_NAME).value
-            last_name = sheet.cell(row, Author.COLUMN_IDX_LAST_NAME).value
-            middle_names = sheet.cell(row, Author.COLUMN_IDX_MIDDLE_NAME).value
-            middle_names = "" if middle_names is None else middle_names
-            department = sheet.cell(row, Author.COLUMN_IDX_DEPARTMENT_NAME).value
-            faculty = sheet.cell(row, Author.COLUMN_IDX_FACULTY_NAME).value
-            link_v = sheet.cell(row, Author.COLUMN_IDX_LINK).value
-            link = "" if link_v is None else link_v
-            middle_name = middle_names.split(",")[0]
-            author = Author(first_name, last_name, department, faculty, middle_name, link)
-            list_authors.append(author)
-    return list_authors
-
 
 if __name__ == "__main__":
-    print(get_list_authors())
+    pass
+    #print(get_list_authors())
