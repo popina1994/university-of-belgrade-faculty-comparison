@@ -264,10 +264,12 @@ class CrawlerWorksScopus(CrawlerWorks):
 
 if __name__ == "__main__":
     crawler = CrawlerWorksScopus()
-    
+
+    '''
     crawler.crawl_custom_authors([Author(first_name="Sana", last_name="Stojanovic", department=MATF_DEPARTMENT,
                                        faculty=MATF_FACULTY_NAME, middle_name="N",
                                        link=r"https://www.scopus.com/authid/detail.uri?authorId=54401813300")])
-
+'''
     #crawler.convert_authors_to_real_names(WorkTypes.SCOPUS)
     #crawler.generate_graph_all_known_authors()
+    crawler.write_all_authors()

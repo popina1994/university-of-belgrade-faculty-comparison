@@ -90,7 +90,7 @@ class Author:
         return hash((self.first_name, self.last_name, self.middle_name))
 
     @staticmethod
-    def write_header_to_sheet(sheet: worksheet):
+    def write_headers_to_sheet(sheet: worksheet):
         sheet.cell(1, Author.COLUMN_IDX_FIRST_NAME).value = Author.COLUMN_FIRST_NAME
         sheet.cell(1, Author.COLUMN_IDX_LAST_NAME).value = Author.COLUMN_LAST_NAME
         sheet.cell(1, Author.COLUMN_IDX_MIDDLE_NAME).value = Author.COLUMN_MIDDLE_NAME

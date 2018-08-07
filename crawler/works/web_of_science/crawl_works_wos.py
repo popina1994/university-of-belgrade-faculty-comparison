@@ -168,12 +168,23 @@ class CrawlerWorksWos(CrawlerWorks):
                 print("No works available")
         works_work_book.save()
 
+    def print_links(self):
+        for author in self.list_authors:
+            print("{} {} {}".format(author.first_name, author.last_name, author.middle_name))
+            if author.middle_name != Author.MIDDLE_NAME_NOT_FOUND:
+                path = KOBSON_WOS.format(author.last_name.replace(" ", "-"), author.first_name,
+                                       CrawlerWorksWos.format_middle_name(author.middle_name), 0)
+                print("{} {} {} {}".format(author.last_name, author.first_name, author.middle_name, path))
+
+
 
 if __name__ == "__main__":
     crawler = CrawlerWorksWos()
+    #crawler.update_links()
     '''
     crawler.crawl_custom_authors([Author(first_name="Sana", last_name="Stojanovic", department=MATF_DEPARTMENT,
                                        faculty=MATF_FACULTY_NAME, middle_name="N",
                                        link=r"https://www.scopus.com/authid/detail.uri?authorId=54401813300")])
     '''
-    crawler.generate_graph_all_known_authors()
+    #crawler.generate_graph_all_known_authors()
+    crawler.write_all_authors()

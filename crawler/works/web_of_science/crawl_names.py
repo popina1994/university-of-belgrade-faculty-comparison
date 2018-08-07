@@ -69,20 +69,5 @@ def get_list_authors():
     return list_authors
 
 
-def write_all_authors():
-    # Only used for generation of nodes in gephi.
-    list_authors = get_list_authors()
-    work_book = Workbook()
-    work_book.remove(work_book.active)
-    all_authors_sheet = work_book.create_sheet(ALL_AUTHORS_WOS_SHEET_NAME)
-
-    Author.write_header_to_sheet(all_authors_sheet)
-    row = 2
-    for author in list_authors:
-        author.write_to_sheet(all_authors_sheet, row)
-        row += 1
-    work_book.save(AUTHORS_ALL_WOS_FILE_NAME)
-
-
 if __name__ == "__main__":
-    write_all_authors()
+    pass
