@@ -154,7 +154,7 @@ class CrawlerWorksWos(CrawlerWorks):
         return impact_factor_2017, impact_factor5_2017
 
     def crawl_works(self, list_authors: list, work_book_type: WorkTypes):
-        works_work_book = WorksWorkbook(work_book_type)
+        works_work_book = WorksWorkbook(work_book_type, is_write=True)
 
         for author in list_authors:
             print("{} {} {}".format(author.first_name, author.last_name, author.middle_name))
@@ -201,5 +201,5 @@ if __name__ == "__main__":
                                        faculty=MATF_FACULTY_NAME, middle_name="N",
                                        link=r"https://www.scopus.com/authid/detail.uri?authorId=54401813300")])
     '''
-    #crawler.generate_graph_all_known_authors()
-    crawler.write_all_authors()
+    crawler.generate_graph_all_known_authors()
+    #crawler.write_all_authors()

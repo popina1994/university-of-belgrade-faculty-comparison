@@ -1,12 +1,9 @@
 from abc import ABC, abstractmethod
 
-import openpyxl
-
 from data.tables.graph_edge import GraphEdge
-from data.tables.work_table.work import Work
 from data.workbooks.authors_all_workbook import AuthorsAllWorkBook
 from data.workbooks.graph_edges_workbook import GraphEdgesWorkbook
-from data.workbooks.works_workbook import WORKS_FILE_NAME, WORKS_SHEET_NAME, WorkTypes
+from data.workbooks.works_workbook import WorkTypes, WorksWorkbook
 
 
 class CrawlerWorks(ABC):
@@ -37,12 +34,11 @@ class CrawlerWorks(ABC):
         self.crawl_works(authors, WorkTypes.TEMPORARY)
 
     def generate_graph_known_authors(self, work_book_type: WorkTypes):
-        work_book_works = openpyxl.load_workbook(filename=WORKS_FILE_NAME[work_book_type])
-        sheet = work_book_works[WORKS_SHEET_NAME]
+        work_book_works = WorksWorkbook(work_book_type, is_write=False)
         work_book_edges = GraphEdgesWorkbook(work_book_type)
-        for row in range(2, sheet.max_row + 1):
-            author1 = sheet.cell(row, Work.COLUMN_IDX_AUTHOR).value.lower()
-            authors = sheet.cell(row, Work.COLUMN_IDX_AUTHORS).value.lower()
+        for row in work_book_works.load_sheet():
+            author1 = row.author.lower().strip()
+            authors = row.authors.lower()
             for author2 in authors.split(","):
                 if (author1 < author2) and (author2 in self.set_name_authors):
                     edge = GraphEdge(author1, author2, 1)

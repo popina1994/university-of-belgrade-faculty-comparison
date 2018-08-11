@@ -8,7 +8,7 @@ class Work:
         self._title = title
         self._year = year
         self._authors = authors
-        self._doc_type = doc_type
+        self._document_type = doc_type
         self._num_citations = num_citations
         self._document_name = document_name
         self._department = department
@@ -67,12 +67,12 @@ class Work:
         self._year = value
 
     @property
-    def doc_type(self):
-        return self._doc_type
+    def document_type(self):
+        return self._document_type
 
-    @doc_type.setter
-    def doc_type(self, value):
-        self._doc_type = value
+    @document_type.setter
+    def document_type(self, value):
+        self._document_type = value
 
     @property
     def num_citations(self):
@@ -106,6 +106,20 @@ class Work:
     def faculty(self, value):
         self._faculty = value
 
+    @staticmethod
+    def read_from_sheet(sheet: worksheet, row: int):
+        work = Work(title="", year="", authors="", doc_type="")
+        work.author = sheet.cell(row, Work.COLUMN_IDX_AUTHOR).value
+        work.title = sheet.cell(row, Work.COLUMN_IDX_TITLE).value
+        work.year = sheet.cell(row, Work.COLUMN_IDX_YEAR).value
+        work.authors = sheet.cell(row, Work.COLUMN_IDX_AUTHORS).value
+        work.num_citations = sheet.cell(row, Work.COLUMN_IDX_NUM_CITATIONS).value
+        work.document_type = sheet.cell(row, Work.COLUMN_IDX_DOC_TYPE).value
+        work.document_name= sheet.cell(row, Work.COLUMN_IDX_DOC_NAME).value
+        work.department = sheet.cell(row, Work.COLUMN_IDX_DEPARTMENT).value
+        work.faculty = sheet.cell(row, Work.COLUMN_IDX_FACULTY).value
+        return work
+
     def write_headers_to_sheet(self, sheet: worksheet):
         sheet.cell(1, Work.COLUMN_IDX_AUTHOR).value = Work.COLUMN_AUTHOR
         sheet.cell(1, Work.COLUMN_IDX_TITLE).value = Work.COLUMN_TITLE
@@ -123,7 +137,7 @@ class Work:
         sheet.cell(row, Work.COLUMN_IDX_YEAR).value = self.year
         sheet.cell(row, Work.COLUMN_IDX_AUTHORS).value = self.authors
         sheet.cell(row, Work.COLUMN_IDX_NUM_CITATIONS).value = self.num_citations
-        sheet.cell(row, Work.COLUMN_IDX_DOC_TYPE).value = self.doc_type
+        sheet.cell(row, Work.COLUMN_IDX_DOC_TYPE).value = self.document_type
         sheet.cell(row, Work.COLUMN_IDX_DOC_NAME).value = self.document_name
         sheet.cell(row, Work.COLUMN_IDX_DEPARTMENT).value = self.department
         sheet.cell(row, Work.COLUMN_IDX_FACULTY).value = self.faculty

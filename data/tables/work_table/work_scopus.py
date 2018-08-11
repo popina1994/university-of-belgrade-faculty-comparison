@@ -56,6 +56,19 @@ class WorkScopus(Work):
     def snip(self, value):
         self._snip = value
 
+    @staticmethod
+    def read_from_sheet(sheet: worksheet, row: int):
+        work_super = Work.read_from_sheet(sheet, row)
+        work = WorkScopus(author=work_super.author, title=work_super.title, year=work_super.year,
+                          authors=work_super.authors, num_citations=work_super.num_citations,
+                          doc_type=work_super.document_type, document_name=work_super.document_name,
+                          department=work_super.department, faculty=work_super.faculty)
+        work.weight_index = sheet.cell(row, WorkScopus.COLUMN_IDX_WEIGHT_INDEX).value
+        work.cite_score = sheet.cell(row, WorkScopus.COLUMN_IDX_CITE_SCORE).value
+        work.sjr = sheet.cell(row, WorkScopus.COLUMN_IDX_SJR).value
+        work.snip = sheet.cell(row, WorkScopus.COLUMN_IDX_SNIP).value
+        return work
+
     def write_headers_to_sheet(self, sheet: worksheet):
         super().write_headers_to_sheet(sheet)
         sheet.cell(1, WorkScopus.COLUMN_IDX_CITE_SCORE).value = WorkScopus.COLUMN_CITE_SCORE

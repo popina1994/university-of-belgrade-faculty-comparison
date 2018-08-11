@@ -206,7 +206,7 @@ class CrawlerWorksScopus(CrawlerWorks):
         return cite_score, sjr, snip
 
     def crawl_works(self, list_authors: list, work_book_type: WorkTypes):
-        works_work_book = WorksWorkbook(work_book_type)
+        works_work_book = WorksWorkbook(work_book_type, is_write=True)
 
         for author in list_authors:
             if author.link != "":
@@ -286,5 +286,5 @@ if __name__ == "__main__":
                                        link=r"https://www.scopus.com/authid/detail.uri?authorId=54401813300")])
 '''
     #crawler.convert_authors_to_real_names(WorkTypes.SCOPUS)
-    #crawler.generate_graph_all_known_authors()
-    crawler.write_all_authors()
+    crawler.generate_graph_all_known_authors()
+    #crawler.write_all_authors()
