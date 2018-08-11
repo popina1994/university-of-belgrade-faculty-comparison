@@ -7,7 +7,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
-from crawler.authors.crawler_matf import MATF_DEPARTMENT, MATF_FACULTY_NAME
 from crawler.works.crawl_works import CrawlerWorks
 from crawler.works.scopus.crawl_links import AUTHORS_SCOPUS_FILE_NAME
 from data.tables.work_table.work_scopus import WorkScopus
@@ -221,8 +220,7 @@ class CrawlerWorksScopus(CrawlerWorks):
 
                     work = WorkScopus(title=work_bib["title"], authors=work_bib["author"].replace("-", " "),
                                       year=work_bib["year"], doc_type=work_bib['document_type'],
-                                      author="{} {} {}".format(author.last_name, author.first_name,
-                                      author.middle_name).strip(),
+                                      author=author.id_name(),
                                       num_citations=citations[work_id], weight_index=weight_index,
                                       document_name=work_bib.get('journal', ""),
                                       cite_score=cite_score, sjr=sjr, snip=snip,
@@ -286,5 +284,5 @@ if __name__ == "__main__":
                                        link=r"https://www.scopus.com/authid/detail.uri?authorId=54401813300")])
 '''
     #crawler.convert_authors_to_real_names(WorkTypes.SCOPUS)
-    crawler.generate_graph_all_known_authors()
-    #crawler.write_all_authors()
+    #crawler.generate_graph_all_known_authors()
+    crawler.write_all_authors()

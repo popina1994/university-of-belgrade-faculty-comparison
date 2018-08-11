@@ -2,13 +2,14 @@ from openpyxl.worksheet import worksheet
 
 
 class Author:
-    def __init__(self, first_name: str, last_name: str, department: str, faculty: str, middle_name="", link=""):
+    def __init__(self, first_name: str, last_name: str, department: str, faculty: str, middle_name="", link="", h_index=""):
         self._first_name = first_name
         self._last_name = last_name
         self._department = department
         self._faculty = faculty
         self._middle_name = middle_name
         self._link = link
+        self._h_index = h_index
 
     COLUMN_FIRST_NAME = "Ime"
     COLUMN_LAST_NAME = "Prezime"
@@ -16,6 +17,7 @@ class Author:
     COLUMN_FACULTY_NAME = "Fakultet"
     COLUMN_MIDDLE_NAME = "Srednje ime"
     COLUMN_LINK_NAME = "Link"
+    COLUMN_H_INDEX_NAME = "H indeks"
 
     COLUMN_IDX_FIRST_NAME = 1
     COLUMN_IDX_LAST_NAME = 2
@@ -23,6 +25,7 @@ class Author:
     COLUMN_IDX_DEPARTMENT_NAME = 4
     COLUMN_IDX_FACULTY_NAME = 5
     COLUMN_IDX_LINK = 6
+    COLUMN_IDX_H_INDEX = 7
 
     MIDDLE_NAME_NOT_FOUND = "N/A"
 
@@ -75,6 +78,14 @@ class Author:
     def link(self, value):
         self._link = value
 
+    @property
+    def h_index(self):
+        return self._h_index
+
+    @h_index.setter
+    def h_index(self, value):
+        self._h_index = value
+
     def __lt__(self, other):
         if self.last_name != other.last_name:
             return self.last_name < other.last_name
@@ -97,6 +108,7 @@ class Author:
         sheet.cell(1, Author.COLUMN_IDX_FACULTY_NAME).value = Author.COLUMN_FACULTY_NAME
         sheet.cell(1, Author.COLUMN_IDX_DEPARTMENT_NAME).value = Author.COLUMN_DEPARTMENT_NAME
         sheet.cell(1, Author.COLUMN_IDX_LINK).value = Author.COLUMN_LINK_NAME
+        sheet.cell(1, Author.COLUMN_IDX_H_INDEX).value = Author.COLUMN_H_INDEX_NAME
 
     def write_to_sheet(self, sheet: worksheet, row: int):
         sheet.cell(row, Author.COLUMN_IDX_FIRST_NAME).value = self.first_name
@@ -105,6 +117,7 @@ class Author:
         sheet.cell(row, Author.COLUMN_IDX_FACULTY_NAME).value = self.faculty
         sheet.cell(row, Author.COLUMN_IDX_DEPARTMENT_NAME).value = self.department
         sheet.cell(row, Author.COLUMN_IDX_LINK).value = self.link
+        sheet.cell(row, Author.COLUMN_IDX_H_INDEX).value = self.h_index
 
     @staticmethod
     def id_name_static(first_name: str, last_name: str, middle_name: str):

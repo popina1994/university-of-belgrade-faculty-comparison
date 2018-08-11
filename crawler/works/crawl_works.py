@@ -19,6 +19,7 @@ class CrawlerWorks(ABC):
 
     def write_all_authors(self):
         work_book = AuthorsAllWorkBook(self.work_book_type)
+        self.calculate_h_index()
         for author in self.list_authors:
             work_book.save_author(author)
         work_book.save()
@@ -37,7 +38,7 @@ class CrawlerWorks(ABC):
         work_book_works = WorksWorkbook(work_book_type, is_write=False)
         work_book_edges = GraphEdgesWorkbook(work_book_type)
         for row in work_book_works.load_sheet():
-            author1 = row.author.lower().strip()
+            author1 = row.author.lower()
             authors = row.authors.lower()
             for author2 in authors.split(","):
                 if (author1 < author2) and (author2 in self.set_name_authors):
@@ -45,11 +46,37 @@ class CrawlerWorks(ABC):
                     work_book_edges.save_graph_edge(edge)
         work_book_edges.save()
 
+    def load_citations(self):
+        work_book_works = WorksWorkbook(self.work_book_type, is_write=False)
+        authors_citations = {}
+        dict_authors = {author.id_name(): author for author in self.list_authors}
+        for idx, row in enumerate(work_book_works.load_sheet()):
+            author = dict_authors[row.author]
+            author_citations = authors_citations.get(author, [])
+            num_citations = 0 if row.num_citations is None else int(row.num_citations)
+            author_citations.append(num_citations)
+            authors_citations[author] = author_citations
+        return authors_citations
+
+    def calculate_h_index(self):
+        authors_citations = self.load_citations()
+        author_h_index = {author: 0 for author in self.list_authors}
+        for author in authors_citations.keys():
+            author_citations = authors_citations[author]
+            for h_index_cur in reversed(range(max(author_citations) + 1)):
+                number_works = sum(num_citation >= h_index_cur for num_citation in author_citations)
+                if number_works >= h_index_cur:
+                    author_h_index[author] = h_index_cur
+                    break
+        for author in author_h_index.keys():
+            author.h_index = author_h_index[author]
+
     def generate_graph_all_known_authors(self):
         self.generate_graph_known_authors(self.work_book_type)
 
     def generate_graph_known_authors_custom(self):
         self.generate_graph_known_authors(WorkTypes.TEMPORARY)
+
 
 
 

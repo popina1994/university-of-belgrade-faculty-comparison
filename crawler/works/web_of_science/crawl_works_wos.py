@@ -172,7 +172,7 @@ class CrawlerWorksWos(CrawlerWorks):
                     print("if{} if5{} num_cit {}".format(impact_factor, impact_factor5, num_citations))
                     work = WorkWos(title=work_bib["title"], authors=work_bib["author"].replace("-", " "),
                                 year=work_bib["year"], doc_type=work_bib['document_type'],
-                                author="{} {} {}".format(author.last_name, author.first_name, author.middle_name).strip(),
+                                author=author.id_name(),
                                 num_citations=num_citations,
                                 document_name=work_bib['journal'],
                                 impact_factor=impact_factor, impact_factor5=impact_factor5,
@@ -192,7 +192,6 @@ class CrawlerWorksWos(CrawlerWorks):
                 print("{} {} {} {}".format(author.last_name, author.first_name, author.middle_name, path))
 
 
-
 if __name__ == "__main__":
     crawler = CrawlerWorksWos()
     #crawler.update_links()
@@ -201,5 +200,6 @@ if __name__ == "__main__":
                                        faculty=MATF_FACULTY_NAME, middle_name="N",
                                        link=r"https://www.scopus.com/authid/detail.uri?authorId=54401813300")])
     '''
-    crawler.generate_graph_all_known_authors()
-    #crawler.write_all_authors()
+    #crawler.generate_graph_all_known_authors()
+    #crawler.calculate_h_index()
+    crawler.write_all_authors()
