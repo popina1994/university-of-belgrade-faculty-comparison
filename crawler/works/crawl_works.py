@@ -34,15 +34,17 @@ class CrawlerWorks(ABC):
     def crawl_custom_authors(self, authors: list):
         self.crawl_works(authors, WorkTypes.TEMPORARY)
 
-    def generate_graph_known_authors(self, work_book_type: WorkTypes):
+    def generate_graph_known_authors(self, work_book_type: WorkTypes, is_fraction: bool=False):
         work_book_works = WorksWorkbook(work_book_type, is_write=False)
-        work_book_edges = GraphEdgesWorkbook(work_book_type)
+        work_book_edges = GraphEdgesWorkbook(work_book_type, is_fraction)
         for row in work_book_works.load_sheet():
             author1 = row.author.lower()
             authors = row.authors.lower()
-            for author2 in authors.split(","):
+            authors_set = authors.split(",")
+            for author2 in authors_set:
                 if (author1 < author2) and (author2 in self.set_name_authors):
-                    edge = GraphEdge(author1, author2, 1)
+                    weight = 2 / (authors_set.__len__() * (authors_set.__len__() - 1)) if is_fraction else 1
+                    edge = GraphEdge(author1, author2, weight)
                     work_book_edges.save_graph_edge(edge)
         work_book_edges.save()
 
@@ -71,8 +73,8 @@ class CrawlerWorks(ABC):
         for author in author_h_index.keys():
             author.h_index = author_h_index[author]
 
-    def generate_graph_all_known_authors(self):
-        self.generate_graph_known_authors(self.work_book_type)
+    def generate_graph_all_known_authors(self, is_fraction):
+        self.generate_graph_known_authors(self.work_book_type, is_fraction)
 
     def generate_graph_known_authors_custom(self):
         self.generate_graph_known_authors(WorkTypes.TEMPORARY)

@@ -200,6 +200,6 @@ if __name__ == "__main__":
                                        faculty=MATF_FACULTY_NAME, middle_name="N",
                                        link=r"https://www.scopus.com/authid/detail.uri?authorId=54401813300")])
     '''
-    #crawler.generate_graph_all_known_authors()
+    crawler.generate_graph_all_known_authors(is_fraction=True)
     #crawler.calculate_h_index()
-    crawler.write_all_authors()
+    #crawler.write_all_authors()
