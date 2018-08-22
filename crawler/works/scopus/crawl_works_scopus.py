@@ -7,6 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
+from crawler.authors.crawler_matf import MATF_FACULTY_NAME, MATF_DEPARTMENT
 from crawler.works.crawl_works import CrawlerWorks
 from crawler.works.scopus.crawl_links import AUTHORS_SCOPUS_FILE_NAME
 from data.tables.work_table.work_scopus import WorkScopus
@@ -136,8 +137,9 @@ class CrawlerWorksScopus(CrawlerWorks):
         return citations, field_weight_links, journal_links
 
     @staticmethod
-    def crawl_works_citations_and_field_weight_links_author(author: Author):
+    def crawl_works_and_citations_and_field_weight_links_and_journal_links_author(author: Author):
         download_dir = "{}\\{}_{}".format(DOWNLOAD_FILE_PATH, author.last_name, author.first_name)
+
         driver = CrawlerWorksScopus.init_driver_for_works_by_author(download_dir)
         works = []
         citations_total = []
@@ -204,34 +206,6 @@ class CrawlerWorksScopus(CrawlerWorks):
 
         return cite_score, sjr, snip
 
-    def crawl_works(self, list_authors: list, work_book_type: WorkTypes):
-        works_work_book = WorksWorkbook(work_book_type, is_write=True)
-
-        for author in list_authors:
-            if author.link != "":
-                works, citations, field_weight_links, journal_links = \
-                    CrawlerWorksScopus.crawl_works_citations_and_field_weight_links_author(author)
-                print("Number of works {}".format(works.__len__()))
-                for work_id, work_bib in enumerate(works):
-                    weight_index = self.get_weight_index(field_weight_links[work_id])
-                    cite_score, sjr, snip = self.get_journal_factors(journal_links[work_id])
-                    print("cf{} sjr{} snip{} num_cit {}, weight_index {}".
-                          format(cite_score, sjr, snip, citations[work_id], weight_index))
-
-                    work = WorkScopus(title=work_bib["title"], authors=work_bib["author"].replace("-", " "),
-                                      year=work_bib["year"], doc_type=work_bib['document_type'],
-                                      author=author.id_name(),
-                                      num_citations=citations[work_id], weight_index=weight_index,
-                                      document_name=work_bib.get('journal', ""),
-                                      cite_score=cite_score, sjr=sjr, snip=snip,
-                                      department=author.department, faculty=author.faculty)
-                    works_work_book.save_work(work)
-                    print(work_bib["title"])
-            else:
-                print("No works available")
-        works_work_book.save()
-        crawler.convert_authors_to_real_names(work_book_type)
-
     def find_author(self, last_name: str, first_name_initial: str):
         initial_len = first_name_initial.__len__()
         for author_it in self.list_authors:
@@ -271,6 +245,37 @@ class CrawlerWorksScopus(CrawlerWorks):
             sheet.cell(row, Work.COLUMN_IDX_AUTHORS).value = authors_new
         work_book_works.save(work_book_name)
 
+    def crawl_works(self, list_authors: list, work_book_type: WorkTypes):
+        works_work_book = WorksWorkbook(work_book_type, is_write=True)
+
+        for author in list_authors:
+            if author.link != "":
+                works, citations, field_weight_links, journal_links = \
+                    CrawlerWorksScopus.crawl_works_and_citations_and_field_weight_links_and_journal_links_author(author)
+                print("Number of works {}".format(works.__len__()))
+                for work_id, work_bib in enumerate(works):
+
+                    weight_index = 0 #self.get_weight_index(field_weight_links[work_id])
+                    cite_score, sjr, snip = 0, 0, 0 #self.get_journal_factors(journal_links[work_id])
+                    print("cf{} sjr{} snip{} num_cit {}, weight_index {}".
+                          format(cite_score, sjr, snip, citations[work_id], weight_index))
+                    work = WorkScopus(title=work_bib["title"], authors=work_bib["author"].replace("-", " "),
+                                      year=work_bib["year"], doc_type=work_bib['document_type'],
+                                      author=author.id_name(),
+                                      num_citations=citations[work_id], weight_index=weight_index,
+                                      document_name=work_bib.get('journal', ""),
+                                      cite_score=cite_score, sjr=sjr, snip=snip,
+                                      department=author.department, faculty=author.faculty)
+                    works_work_book.save_work(work)
+                    print(work_bib.get("journal", ""))
+                    print(work_bib["title"])
+            else:
+                print("No works available")
+        works_work_book.save()
+        crawler.convert_authors_to_real_names(work_book_type)
+
+
+
     def generate_graph_authors(self):
         pass
 
@@ -283,6 +288,10 @@ if __name__ == "__main__":
                                        faculty=MATF_FACULTY_NAME, middle_name="N",
                                        link=r"https://www.scopus.com/authid/detail.uri?authorId=54401813300")])
 '''
+    crawler.crawl_custom_authors([Author(first_name="Miodrag", last_name="Zivkovic", department=MATF_DEPARTMENT,
+                                       faculty=MATF_FACULTY_NAME, middle_name="N",
+                                       link=r"https://www.scopus.com/authid/detail.uri?authorId=54401813300")])
+    #crawler.crawl_work_all_authors()
     #crawler.convert_authors_to_real_names(WorkTypes.SCOPUS)
     crawler.generate_graph_all_known_authors(is_fraction=True)
     #crawler.write_all_authors()

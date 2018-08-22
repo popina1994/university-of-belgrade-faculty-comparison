@@ -1,7 +1,6 @@
 import openpyxl
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
-from crawler.authors.crawler_matf import MATF_DEPARTMENT, MATF_FACULTY_NAME
 from crawler.works.crawl_works import CrawlerWorks
 from crawler.works.web_of_science.crawl_names import AUTHORS_WOS_FILE_NAME
 from data.tables.work_table.work_wos import WorkWos
